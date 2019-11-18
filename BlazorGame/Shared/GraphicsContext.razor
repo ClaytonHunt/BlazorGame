@@ -1,0 +1,21 @@
+﻿<canvas id="blazorGameGraphicsContext" width="@Width" height="@Height"></canvas>
+
+<CascadingValue Value="Canvas">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    [Parameter]
+    public int Height { get; set; } = 240;
+
+    [Parameter]
+    public int Width { get; set; } = 320;
+
+    [Parameter]
+    public bool IsFullScreen { get; set; }
+
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+
+    public ElementReference Canvas { get; set; }
+}

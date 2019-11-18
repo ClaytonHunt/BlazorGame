@@ -1,0 +1,18 @@
+﻿@inject  IJSRuntime JsRuntime
+
+@code {
+    public Game1 _game;
+
+    [CascadingParameter]
+    public ElementReference Canvas { get; set; }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+
+        if(firstRender)
+        {
+            _game = new Game1(JsRuntime);
+        }
+    }
+}
