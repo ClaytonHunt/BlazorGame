@@ -26,5 +26,10 @@ namespace BlazorGame.Services
         {
             _graphicsDevice.DrawTexture(texture.Position, location.X, location.Y, color);
         }
+
+        public void Draw(Texture2D texture, Vector2 location,string a, in Color color, float b, Vector2 offset, float scale, SpriteEffects effect, float c)
+        {
+            _graphicsDevice.DrawTexture(texture.Position, location.X - offset.X, location.Y - offset.Y, color);
+        }
     }
 }

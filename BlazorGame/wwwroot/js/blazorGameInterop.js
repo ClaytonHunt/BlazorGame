@@ -1,11 +1,30 @@
 ﻿window.BlazorGame = window.BlazorGame || {};
-(function (ns) {
+(function(ns) {
     var context = null;
     var dotnetGraphics = null;
+    var rootDirectory = "";
     var contents = [];
+    var previousTimestamp = 0;
+    var buffer = { x: 0, y: 0 };
+    var keys = new Set();
+
+    window.addEventListener("keydown",
+        function(e){
+            keys.add(e.keyCode);
+        },
+        false);
+
+    window.addEventListener('keyup',
+        function(e) {
+            keys.delete(e.keyCode);
+        },
+        false);
+
 
     ns.initialize = (dotnetHelper) => {
         var canvas = document.getElementById("blazorGameGraphicsContext");
+        buffer.x = canvas.width;
+        buffer.y = canvas.height;
         context = canvas.getContext("2d");
         dotnetGraphics = dotnetHelper;
 
@@ -13,7 +32,10 @@
     };
 
     ns.render = (timestamp) => {
-        dotnetGraphics.invokeMethodAsync('Render', timestamp)
+        const currentTimeStamp = timestamp - previousTimestamp;
+        previousTimestamp = timestamp;
+
+        dotnetGraphics.invokeMethodAsync('Render', currentTimeStamp)
             .then(_ => window.requestAnimationFrame(ns.render));
     };
 
@@ -25,10 +47,17 @@
         context.closePath();
     };
 
-    ns.loadContent = (content) => {
-        const result = new Promise((resolve) => {
+    ns.loadContent = (name) => {
+        const result = new Promise((resolve, fail) => {
+            let content = contents.filter(x => x.name == name)[0];
+
+            if (content == null) {
+                fail(`${name} not found.`);
+                return;
+            }
+
             const image = new Image();
-            image.src = content.path;
+            image.src = `${rootDirectory}${content.path}`;
             image.onload = () => {
                 content.isReady = true;
                 content.content.imageWidth = content.content.width;
@@ -38,16 +67,53 @@
             };
 
             content.content = image;
-            content.position = contents.length;
-
-            contents.push(content);
         });
-        
+
 
         return result;
+    };
+
+    ns.registerContent = (name, filename) => {
+        var content = {
+            isReady: false,
+            name: name,
+            path: filename
+        };
+
+        content.position = contents.length;
+
+        contents.push(content);
     };
 
     ns.drawSprite = (position, x, y, color) => {
         context.drawImage(contents[position].content, x, y);
     };
+
+    ns.setRootDirectory = (path) => {
+        rootDirectory = path;
+    };
+
+    ns.getBackBufferWidth = () => {
+        const result = new Promise((resolve, fail) => {
+            resolve(buffer.x);
+        });
+
+        return result;
+    }
+
+    ns.getBackBufferHeight = () => {
+        const result = new Promise((resolve, fail) => {
+            resolve(buffer.y);
+        });
+
+        return result;
+    }
+
+    ns.getKeyState = () => {
+        const result = new Promise((resolve, fail) => {
+            resolve({ keys: [...keys] });
+        });
+
+        return result;
+    }
 })(window.BlazorGame);

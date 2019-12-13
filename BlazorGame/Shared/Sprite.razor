@@ -1,0 +1,15 @@
+﻿@code {
+    [Parameter]
+    public string Label { get; set; }
+
+    [Parameter]
+    public string Source { get; set; }
+
+    [CascadingParameter]
+    GameContent Content { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await Content.Register<Texture2D>(Label, Source);
+    }
+}

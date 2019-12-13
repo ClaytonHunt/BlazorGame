@@ -1,7 +1,15 @@
-﻿<canvas id="blazorGameGraphicsContext" width="@Width" height="@Height"></canvas>
+﻿@inject GameContent Content;
 
-<CascadingValue Value="Canvas">
-    @ChildContent
+<canvas id="blazorGameGraphicsContext" @ref="Canvas" width="@Width" height="@Height"></canvas>
+
+<CascadingValue Name="GraphicsHeight" Value="@Height">
+    <CascadingValue Name="GraphicsWidth" Value="@Width">
+        <CascadingValue Value="@Content">
+            <CascadingValue Value="@Canvas">
+                @ChildContent
+            </CascadingValue>
+        </CascadingValue>
+    </CascadingValue>
 </CascadingValue>
 
 @code {

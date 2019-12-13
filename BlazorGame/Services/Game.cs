@@ -6,14 +6,15 @@ namespace BlazorGame.Services
     {
         public IGraphicsDevice GraphicsDevice { get; set; }
 
-        protected virtual void Initialize()
+        public virtual async Task Initialize()
         {
-            LoadContent();
+            await LoadContent();
 
-            GraphicsDevice.OnReady += () =>
+            GraphicsDevice.OnReady += (gameTime) =>
             {
-                Update(null);
-                Draw(null);
+
+                Update(gameTime);
+                Draw(gameTime);
             };
         }
 

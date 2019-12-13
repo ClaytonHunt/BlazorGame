@@ -1,4 +1,4 @@
-﻿@inject  IJSRuntime JsRuntime
+﻿@inject IJSRuntime JsRuntime
 
 @code {
     public Game1 _game;
@@ -6,13 +6,23 @@
     [CascadingParameter]
     public ElementReference Canvas { get; set; }
 
-    protected override void OnAfterRender(bool firstRender)
+    [CascadingParameter]
+    public GameContent Content { get; set; }
+
+    [CascadingParameter(Name = "GraphicsWidth")]
+    public int Width { get; set; }
+
+    [CascadingParameter(Name = "GraphicsHeight")]
+    public int Height { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         base.OnAfterRender(firstRender);
 
-        if(firstRender)
+        if (firstRender)
         {
-            _game = new Game1(JsRuntime);
+            _game = new Game1(JsRuntime, Content, Width, Height);
+            await _game.Initialize();
         }
     }
 }

@@ -1,6 +1,6 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
 using System.Numerics;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Microsoft.JSInterop;
 
@@ -8,124 +8,85 @@ namespace BlazorGame.Services
 {
     public class Game1 : Game
     {
-        private GraphicsDeviceManager graphics;
-        private SpriteBatch spriteBatch;
-        private Texture2D ballTexture;
-        private int ballX, ballY = 0;
-        private GameContent Content;
-        private int ballXSpeed = 5;
-        private int ballYSpeed = 5;
+        private readonly GraphicsDeviceManager _graphics;
+        private readonly IKeyboardDriver _keyboard;
+        private readonly GameContent _content;
+        private SpriteBatch _spriteBatch;
+        private Player player;
+        private float _ballSpeed = 100;
 
-        public Game1(IJSRuntime jsRuntime) : base()
+        public Game1(IJSRuntime jsRuntime, GameContent content, int width, int height) : base()
         {
-            GraphicsDevice = new CanvasGraphicsDevice(jsRuntime);
-            graphics = new GraphicsDeviceManager(this);
-            Content = new GameContent(jsRuntime) {
-                RootDirectory = "/"
-            };
-
-            Initialize();
+            GraphicsDevice = new CanvasGraphicsDevice(jsRuntime, width, height);
+            _graphics = new GraphicsDeviceManager(this);
+            _keyboard = new JsKeyboardDriver(jsRuntime);
+            (_content = content).RootDirectory = "/";
         }
 
-        protected override void Initialize()
+        public override async Task Initialize()
         {
             // TODO: Add your initialization logic here
+            player = new Player();
 
-            base.Initialize();
+            await base.Initialize();
         }
 
         protected override async Task LoadContent()
         {
             // Create a new SpriteBatch, which can be used to draw textures.
-            spriteBatch = new SpriteBatch(GraphicsDevice);
+            _spriteBatch = new SpriteBatch(GraphicsDevice);
 
             // TODO: use this.Content to load your game content here
-            ballTexture = await Content.Load<Texture2D>("img/ball.png");
+            Vector2 playerPostion = new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, (float) (GraphicsDevice.Viewport.TitleSafeArea.Y + (GraphicsDevice.Viewport.TitleSafeArea.Height / 2.0)));
+
+            player.Initialize(await _content.Load<Texture2D>("Graphics/player"), playerPostion);
         }
 
         protected override async Task Update(GameTime gameTime)
         {
-//            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
-//                Exit();
+            // if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+            // Exit();
 
             // TODO: Add your update logic here
-            ballX += ballXSpeed;
-            if (ballX < 0 || ballX > (800 - ballTexture.Content.Width))
-            {
-                ballXSpeed = -ballXSpeed;
-                ballX += ballXSpeed;
-            }
+            var keyState = await _keyboard.GetState();
+            
+            if (keyState.IsKeyDown(Keys.Up))
+                player.Position.Y -= _ballSpeed * (float) gameTime.ElapsedTime.TotalSeconds;
 
-            ballY += ballYSpeed;
-            if (ballY < 0 || ballY > (640 - ballTexture.Content.Height))
-            {
-                ballYSpeed = -ballYSpeed;
-                ballY += ballYSpeed;
-            }
+            if (keyState.IsKeyDown(Keys.Down))
+                player.Position.Y += _ballSpeed * (float)gameTime.ElapsedTime.TotalSeconds;
+
+            if (keyState.IsKeyDown(Keys.Left))
+                player.Position.X -= _ballSpeed * (float)gameTime.ElapsedTime.TotalSeconds;
+
+            if (keyState.IsKeyDown(Keys.Right))
+                player.Position.X += _ballSpeed * (float)gameTime.ElapsedTime.TotalSeconds;
+
+            player.Position.X = Math.Min(Math.Max(player.PlayerTexture.Width / 2.0f, player.Position.X), _graphics.GraphicsDevice.PreferredBackBufferWidth - player.PlayerTexture.Width / 2);
+            player.Position.Y = Math.Min(Math.Max(player.PlayerTexture.Height / 2.0f, player.Position.Y), _graphics.GraphicsDevice.PreferredBackBufferHeight - player.PlayerTexture.Height / 2);
 
             await base.Update(gameTime);
         }
 
         protected override async Task Draw(GameTime gameTime)
         {
-            graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
+            _graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
 
             // TODO: Add your drawing code here
-            spriteBatch.Begin();
-            spriteBatch.Draw(ballTexture, new Vector2(ballX, ballY), Color.White);
-            spriteBatch.End();
+            _spriteBatch.Begin();
+            _spriteBatch.Draw(
+                player.PlayerTexture, 
+                player.Position, 
+                null,
+                Color.White,
+                0f,
+                new Vector2(player.PlayerTexture.Width / 2, player.PlayerTexture.Height / 2),
+                1f,
+                SpriteEffects.None,
+                0f);
+            _spriteBatch.End();
 
             await base.Draw(gameTime);
         }
-    }
-
-    internal class GameContent
-    {
-        private readonly IJSRuntime _jsRuntime;
-
-        public GameContent(IJSRuntime jsRuntime)
-        {
-            _jsRuntime = jsRuntime;
-        }
-
-        public async Task<T> Load<T>(string filename) where T: IContent, new()
-        {
-            var content = new T {
-                Path = $"{RootDirectory}{filename}"
-            };
-
-            content = await _jsRuntime.InvokeAsync<T>("BlazorGame.loadContent", content);
-
-            return content;
-        }
-
-        public string RootDirectory { get; set; }
-    }
-
-    public class Texture2D: IContent<ImageContent>
-    {
-        public string Path { get; set; }
-        public int Position { get; set; }
-        public ImageContent Content { get; set; }
-    }
-
-    public class ImageContent
-    {
-        [JsonPropertyName("imageWidth")]
-        public int Width { get; set; }
-
-        [JsonPropertyName("imageHeight")]
-        public int Height { get; set; }
-    }
-
-    public interface IContent<T>: IContent
-    {
-        T  Content { get; set; }
-    }
-
-    public interface IContent
-    {
-        string Path { get; set; }
-        int Position { get; set; }
     }
 }
