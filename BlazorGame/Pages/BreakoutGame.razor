@@ -1,7 +1,16 @@
-﻿@inject IJSRuntime JsRuntime
+﻿@inherits Game
+
+@using System.Drawing
+@using System.Numerics
+
+@inject IJSRuntime JsRuntime
 
 @code {
-    public Game1 _game;
+    private GraphicsDeviceManager _graphics;
+    private IKeyboardDriver _keyboard;
+    private GameContent _content;
+    private SpriteBatch _spriteBatch;
+    private Player player;
 
     [CascadingParameter]
     public ElementReference Canvas { get; set; }
@@ -21,8 +30,56 @@
 
         if (firstRender)
         {
-            _game = new Game1(JsRuntime, Content, Width, Height);
-            await _game.Initialize();
+            GraphicsDevice = new CanvasGraphicsDevice(JsRuntime, Width, Height);
+            _graphics = new GraphicsDeviceManager(this);
+            _keyboard = new JsKeyboardDriver(JsRuntime);
+            (_content = Content).RootDirectory = "/";
+
+            await InitializeAsync();
         }
+    }
+
+    protected override async Task InitializeAsync()
+    {
+        // TODO: Add your initialization logic here
+        player = new Player();
+
+        await base.InitializeAsync();
+    }
+
+    protected override async Task LoadContent()
+    {
+        // Create a new SpriteBatch, which can be used to draw textures.
+        _spriteBatch = new SpriteBatch(GraphicsDevice);
+
+        // TODO: use this.Content to load your game content here
+        Vector2 playerPostion = new Vector2(GraphicsDevice.Viewport.TitleSafeArea.X, (float)(GraphicsDevice.Viewport.TitleSafeArea.Y + (GraphicsDevice.Viewport.TitleSafeArea.Height / 2.0)));
+
+        player.Initialize(await _content.Load<Texture2D>("Graphics/player"), playerPostion, _graphics);
+    }
+
+    protected override async Task Update(GameTime gameTime)
+    {
+        // if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+        // Exit();
+
+        // TODO: Add your update logic here
+        var keyState = await _keyboard.GetState();
+
+        player.Update(gameTime, keyState);
+
+        await base.Update(gameTime);
+    }
+
+    protected override async Task Draw(GameTime gameTime)
+    {
+        _graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
+
+        // TODO: Add your drawing code here
+        _spriteBatch.Begin();
+        player.Draw(_spriteBatch);
+        _spriteBatch.End();
+
+        await base.Draw(gameTime);
     }
 }

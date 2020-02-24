@@ -1,12 +1,16 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Drawing;
+using System.Numerics;
+using Microsoft.AspNetCore.Components;
+using System.Threading.Tasks;
 
 namespace BlazorGame.Services
 {
-    public class Game
+    public class Game: ComponentBase
     {
         public IGraphicsDevice GraphicsDevice { get; set; }
 
-        public virtual async Task Initialize()
+        protected virtual async Task InitializeAsync()
         {
             await LoadContent();
 
