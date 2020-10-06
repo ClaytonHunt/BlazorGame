@@ -33,7 +33,9 @@
             GraphicsDevice = new CanvasGraphicsDevice(JsRuntime, Width, Height);
             _graphics = new GraphicsDeviceManager(this);
             _keyboard = new JsKeyboardDriver(JsRuntime);
-            (_content = Content).RootDirectory = "/";
+            _content = Content;
+                
+            _content.RootDirectory = "/";
 
             await InitializeAsync();
         }
