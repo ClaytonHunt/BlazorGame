@@ -1,8 +1,7 @@
 ﻿using System.Threading.Tasks;
-using BlazorGame.Shared.Services;
 using Microsoft.JSInterop;
 
-namespace BlazorGame.Client.Drivers
+namespace BlazorGame.Library
 {
     public class JsKeyboardDriver : IKeyboardDriver
     {

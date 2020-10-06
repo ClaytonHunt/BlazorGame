@@ -1,8 +1,7 @@
-﻿using BlazorGame.Services;
-using System.Drawing;
+﻿using System.Drawing;
 using System.Numerics;
 
-namespace BlazorGame.Shared.Services
+namespace BlazorGame.Library
 {
     public class SpriteBatch
     {

@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorGame.Client", "Blazor
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BlazorGame.Shared", "BlazorGame\Shared\BlazorGame.Shared.csproj", "{612308DA-44BC-49A8-99AA-DA3F27F15885}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BlazorGame.Library", "BlazorGame.Library\BlazorGame.Library.csproj", "{3C09FA91-B562-403A-BD1B-CDEED51D0B3B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{612308DA-44BC-49A8-99AA-DA3F27F15885}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{612308DA-44BC-49A8-99AA-DA3F27F15885}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{612308DA-44BC-49A8-99AA-DA3F27F15885}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3C09FA91-B562-403A-BD1B-CDEED51D0B3B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3C09FA91-B562-403A-BD1B-CDEED51D0B3B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3C09FA91-B562-403A-BD1B-CDEED51D0B3B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3C09FA91-B562-403A-BD1B-CDEED51D0B3B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

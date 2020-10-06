@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 
-namespace BlazorGame.Shared.Services
+namespace BlazorGame.Library
 {
     public class KeyboardState
     {

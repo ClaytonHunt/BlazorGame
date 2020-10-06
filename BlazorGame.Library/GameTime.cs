@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BlazorGame.Shared.Services
+namespace BlazorGame.Library
 {
     public class GameTime
     {

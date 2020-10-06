@@ -1,4 +1,4 @@
-﻿namespace BlazorGame.Shared.Services
+﻿namespace BlazorGame.Library
 {
     public enum Keys
     {

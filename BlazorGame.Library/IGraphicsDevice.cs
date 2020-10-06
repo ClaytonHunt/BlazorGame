@@ -1,8 +1,7 @@
-﻿using BlazorGame.Shared.Services;
-using System;
+﻿using System;
 using System.Drawing;
 
-namespace BlazorGame.Services
+namespace BlazorGame.Library
 {
     public interface IGraphicsDevice
     {

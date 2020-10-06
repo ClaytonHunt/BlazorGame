@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace BlazorGame.Shared.Services
+namespace BlazorGame.Library
 {
     public class ImageContent
     {

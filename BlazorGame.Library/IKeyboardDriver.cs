@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace BlazorGame.Shared.Services
+namespace BlazorGame.Library
 {
     public interface IKeyboardDriver
     {

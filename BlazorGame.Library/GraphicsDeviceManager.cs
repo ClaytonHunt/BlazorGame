@@ -1,6 +1,4 @@
-﻿using BlazorGame.Services;
-
-namespace BlazorGame.Shared.Services
+﻿namespace BlazorGame.Library
 {
     public class GraphicsDeviceManager
     {

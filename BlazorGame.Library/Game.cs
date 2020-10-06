@@ -1,10 +1,9 @@
-﻿using BlazorGame.Services;
-using Microsoft.AspNetCore.Components;
+﻿using Microsoft.AspNetCore.Components;
 using System.Threading.Tasks;
 
-namespace BlazorGame.Shared.Services
+namespace BlazorGame.Library
 {
-    public class Game: ComponentBase
+    public class Game : ComponentBase
     {
         public IGraphicsDevice GraphicsDevice { get; set; }
 

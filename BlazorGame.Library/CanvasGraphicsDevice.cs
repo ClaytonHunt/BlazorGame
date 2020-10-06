@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Drawing;
-using BlazorGame.Services;
-using BlazorGame.Shared.Services;
 using Microsoft.JSInterop;
 
-namespace BlazorGame.Client.Drivers
+namespace BlazorGame.Library
 {
     public class CanvasGraphicsDevice : IGraphicsDevice
     {
