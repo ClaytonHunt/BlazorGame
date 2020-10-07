@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using BlazorGame.Library.Graphics;
+using System.Drawing;
 using System.Numerics;
 
 namespace BlazorGame.Library

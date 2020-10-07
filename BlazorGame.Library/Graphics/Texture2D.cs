@@ -1,4 +1,4 @@
-﻿namespace BlazorGame.Library
+﻿namespace BlazorGame.Library.Graphics
 {
     public class Texture2D : IContent<ImageContent>
     {
