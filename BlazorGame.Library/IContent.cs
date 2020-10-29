@@ -1,9 +1,9 @@
-﻿namespace BlazorGame.Library
+﻿namespace BlazorGame.Framework
 {
     public interface IContent
     {
-        string Path { get; set; }
-        int Position { get; set; }
+        string Name { get; set; }
+        string Path { get; set; }        
     }
 
     public interface IContent<T> : IContent

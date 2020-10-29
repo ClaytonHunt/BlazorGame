@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BlazorGame.Library
+namespace BlazorGame.Framework
 {
     public struct Rectangle : IEquatable<Rectangle>
     {
@@ -8,6 +8,12 @@ namespace BlazorGame.Library
         public int Width;
         public int X;
         public int Y;
+
+        public int Top { get => Y; }
+        public int Bottom { get => Y + Height; }
+        public int Left { get => X; }
+        public int Right { get => X + Width; }
+        public Point Center { get => new Point(X + (Width / 2), Y + (Height / 2)); }
 
         public Rectangle(Point location, Point size)
         {
@@ -25,9 +31,20 @@ namespace BlazorGame.Library
             Height = height;
         }
 
+        public bool Contains(Point value)
+        {
+            return X >= value.X && value.X <= (X + Width) && Y >= value.Y && value.Y <= (Y + Height);
+        }
+
+        public bool Intersects(Rectangle value)
+        {
+            return !(X >= (value.X + value.Width) || value.X >= (X + Width)) && 
+                   !(Y >= (value.Y + value.Height) || value.Y >= (Y + Height));
+        }
+
         public bool Equals(Rectangle other)
         {
-            throw new NotImplementedException();
+            return X == other.X && Y == other.Y && Width == other.Width && Height == other.Height;
         }
     }
 }

@@ -1,0 +1,17 @@
+﻿@code {
+    [Parameter]
+    public string Label { get; set; }
+
+    [Parameter]
+    public string Source { get; set; }
+
+    [CascadingParameter]
+    ContentManager Content { get; set; }
+
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        Content.Register<SoundEffect>(Label, Source);
+
+        return base.OnAfterRenderAsync(firstRender);
+    }
+}

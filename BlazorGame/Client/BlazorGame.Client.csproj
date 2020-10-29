@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\BlazorGame.Library\BlazorGame.Library.csproj" />
+    <ProjectReference Include="..\..\BlazorGame.Library\BlazorGame.Framework.csproj" />
     <ProjectReference Include="..\Shared\BlazorGame.Shared.csproj" />
   </ItemGroup>
 

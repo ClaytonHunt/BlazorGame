@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BlazorGame.Library
+namespace BlazorGame.Framework
 {
     public struct Vector4 : IEquatable<Vector4>
     {

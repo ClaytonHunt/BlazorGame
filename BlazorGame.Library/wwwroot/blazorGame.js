@@ -1,5 +1,5 @@
 ﻿window.BlazorGame = window.BlazorGame || {};
-(function(ns) {
+(function (ns) {
     var context = null;
     var dotnetGraphics = null;
     var rootDirectory = "";
@@ -9,20 +9,21 @@
     var keys = new Set();
 
     window.addEventListener("keydown",
-        function(e){
+        function (e) {
             keys.add(e.keyCode);
         },
         false);
 
     window.addEventListener('keyup',
-        function(e) {
+        function (e) {
             keys.delete(e.keyCode);
         },
         false);
 
 
-    ns.initialize = (dotnetHelper) => {
-        var canvas = document.getElementById("blazorGameGraphicsContext");
+    ns.initialize = (dotnetHelper, canvasId) => {
+        var canvas = document.getElementById(canvasId);
+
         buffer.x = canvas.width;
         buffer.y = canvas.height;
         context = canvas.getContext("2d");
@@ -51,26 +52,51 @@
         const result = new Promise((resolve, fail) => {
             let content = contents.filter(x => x.name == name)[0];
 
+            console.log("Asset:", name, content);
+
             if (content == null) {
                 fail(`${name} not found.`);
                 return;
             }
 
-            const image = new Image();
-            image.src = `${rootDirectory}${content.path}`;
-            image.onload = () => {
-                content.isReady = true;
-                content.content.imageWidth = content.content.width;
-                content.content.imageHeight = content.content.height;
+            console.log(`Getting File: ${rootDirectory}/${content.path}`);            
 
-                resolve(content);
-            };
+            var ext = content.path.substring(content.path.length - 3, content.path.length);
 
-            content.content = image;
+            if (ext == "wav" || ext == "mp3") {                
+                const sound = new Audio();
+                sound.src = `${rootDirectory}/${content.path}`;
+                sound.oncanplay = () => {
+                    content.isReady = true;
+
+                    resolve(content);
+                };
+
+                content.content = sound;
+            } else {
+                const image = new Image();
+                image.src = `${rootDirectory}/${content.path}`;
+                image.onload = () => {
+                    content.isReady = true;
+                    content.width = content.content.width;
+                    content.height = content.content.height;
+
+                    resolve(content);
+                };
+
+                content.content = image;
+            }
         });
 
 
         return result;
+    };
+
+    ns.playAudio = (name, isRepeating) => {
+        let sound = contents.filter(x => x.name == name)[0];
+
+        sound.content.loop = isRepeating;
+        sound.content.play();
     };
 
     ns.registerContent = (name, filename) => {
@@ -85,11 +111,14 @@
         contents.push(content);
     };
 
-    ns.drawSprite = (position, x, y, color) => {
-        context.drawImage(contents[position].content, x, y);
+    ns.drawSprite = (name, x, y, color) => {
+        let content = contents.filter(x => x.name == name)[0];
+
+        context.drawImage(content.content, x, y);
     };
 
     ns.setRootDirectory = (path) => {
+        console.log(`Setting Root Directory: ${path}`);
         rootDirectory = path;
     };
 

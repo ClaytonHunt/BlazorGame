@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace BlazorGame.Library.Graphics
+namespace BlazorGame.Framework.Graphics
 {
-    public class SpriteFont
+    public class SpriteFont : IContent
     {
         public IReadOnlyCollection<char> Characters { get; }
         public char? DefaultCharacter { get; set; }
@@ -12,15 +12,19 @@ namespace BlazorGame.Library.Graphics
         public int LineSpacing { get; set; }
         public float Spacing { get; set; }
         public Texture2D Texture { get; }
+        public string Name { get; set; }
+        public string Path { get; set; }
+
+        public SpriteFont() { }
 
         public SpriteFont(
-            Texture2D texture, 
-            List<Rectangle> glyphBounds, 
-            List<Rectangle> cropping, 
-            List<char> characters, 
-            int lineSpacing, 
-            float spacing, 
-            List<Vector3> kerning, 
+            Texture2D texture,
+            List<Rectangle> glyphBounds,
+            List<Rectangle> cropping,
+            List<char> characters,
+            int lineSpacing,
+            float spacing,
+            List<Vector3> kerning,
             char? defaultCharacter)
         {
             Characters = characters;
