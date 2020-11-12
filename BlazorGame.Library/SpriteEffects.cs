@@ -1,7 +1,9 @@
-﻿namespace BlazorGame.Library
+﻿namespace BlazorGame.Framework
 {
     public enum SpriteEffects
     {
-        None
+        None,
+        FlipHorizontally,
+        FlipVertically
     }
 }

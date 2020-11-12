@@ -1,9 +1,10 @@
 ﻿using System;
 
-namespace BlazorGame.Library
+namespace BlazorGame.Framework
 {
     public class GameTime
     {
-        public TimeSpan ElapsedTime { get; set; }
+        public TimeSpan ElapsedGameTime { get; set; }
+        public TimeSpan TotalGameTime { get; set; }
     }
 }

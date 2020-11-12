@@ -1,41 +1,25 @@
 ﻿@inherits Game
-
-@using System.Drawing
-@using System.Numerics
-
 @inject IJSRuntime JsRuntime
 
-@code { 
+@code {
     private GraphicsDeviceManager _graphics;
     private IKeyboardDriver _keyboard;
-    private GameContent _content;
     private SpriteBatch _spriteBatch;
-    private Player player;
+    private BreakoutPlayer player;
 
     [CascadingParameter]
-    public ElementReference Canvas { get; set; }
-
-    [CascadingParameter]
-    public GameContent Content { get; set; }
-
-    [CascadingParameter(Name = "GraphicsWidth")]
-    public int Width { get; set; }
-
-    [CascadingParameter(Name = "GraphicsHeight")]
-    public int Height { get; set; }
+    public ContentManager _content { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        base.OnAfterRender(firstRender);
+        await base.OnAfterRenderAsync(firstRender);
 
         if (firstRender)
         {
-            GraphicsDevice = new CanvasGraphicsDevice(JsRuntime, Width, Height);
+            GraphicsDevice.Initialize();
             _graphics = new GraphicsDeviceManager(this);
-            _keyboard = new JsKeyboardDriver(JsRuntime);
-            _content = Content;
-                
-            _content.RootDirectory = "/";
+            _keyboard = new JsKeyboardDriver(JsRuntime);            
+            await _content.SetRootDirectory("");
 
             await InitializeAsync();
         }
@@ -44,7 +28,7 @@
     protected override async Task InitializeAsync()
     {
         // TODO: Add your initialization logic here
-        player = new Player();
+        player = new BreakoutPlayer();
 
         await base.InitializeAsync();
     }
@@ -73,7 +57,7 @@
         await base.Update(gameTime);
     }
 
-    protected override async Task Draw(GameTime gameTime)
+    protected override void Draw(GameTime gameTime)
     {
         _graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
 
@@ -82,6 +66,6 @@
         player.Draw(_spriteBatch);
         _spriteBatch.End();
 
-        await base.Draw(gameTime);
-    } 
+        base.Draw(gameTime);
+    }
 }

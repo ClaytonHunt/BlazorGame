@@ -6,10 +6,12 @@
     public string Source { get; set; }
 
     [CascadingParameter]
-    GameContent Content { get; set; }
+    ContentManager Content { get; set; }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected override Task OnAfterRenderAsync(bool firstRender)
     {
-        await Content.Register<Texture2D>(Label, Source);
+        Content.Register<Texture2D>(Label, Source);
+
+        return base.OnAfterRenderAsync(firstRender);
     }
 }
