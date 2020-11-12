@@ -1,7 +1,6 @@
 ﻿using BlazorGame.Framework;
 using BlazorGame.Framework.Graphics;
 using System;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
 namespace BlazorGame.Client.Shared
@@ -25,7 +24,7 @@ namespace BlazorGame.Client.Shared
             get { return position; }
         }
         Vector2 position;
-
+        private Task _loadingContent;
         private Rectangle localBounds;
         /// <summary>
         /// Gets a rectangle which bounds this enemy in world space.
@@ -74,7 +73,7 @@ namespace BlazorGame.Client.Shared
             this.level = level;
             this.position = position;
 
-            _ = LoadContent(spriteSet);
+            _loadingContent = LoadContent(spriteSet);
         }
 
         /// <summary>
@@ -141,6 +140,8 @@ namespace BlazorGame.Client.Shared
         /// </summary>
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
+            if(!_loadingContent.IsCompleted) return;
+
             // Stop running when the game is paused or before turning around.
             if (!Level.Player.IsAlive ||
                 Level.ReachedExit ||

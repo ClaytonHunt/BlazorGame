@@ -134,7 +134,6 @@ namespace BlazorGame.Client.Shared
 
             if (Window != null)
             {
-                Console.WriteLine("Updating Game");
                 // update our level, passing down the GameTime along with all of our input states
                 level.Update(gameTime, keyboardState, gamePadState,
                              accelerometerState, Window.CurrentOrientation);
