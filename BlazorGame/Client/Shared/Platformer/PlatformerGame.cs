@@ -1,5 +1,4 @@
-﻿using BlazorGame.Client.Shared.Platformer;
-using BlazorGame.Framework;
+﻿using BlazorGame.Framework;
 using BlazorGame.Framework.Graphics;
 using BlazorGame.Framework.Input;
 using BlazorGame.Framework.Input.Touch;
@@ -43,10 +42,10 @@ namespace BlazorGame.Client.Shared
 
         // We store our input states so that we only poll once per frame, 
         // then we use the same input state wherever needed
-        private GamePadState gamePadState;
-        private KeyboardState keyboardState;
-        private TouchCollection touchState;
-        private AccelerometerState accelerometerState;
+        private GamePadState gamePadState = new GamePadState();
+        private KeyboardState keyboardState = new KeyboardState();
+        private TouchCollection touchState = new TouchCollection();
+        private AccelerometerState accelerometerState = new AccelerometerState();
 
         private VirtualGamePad virtualGamePad;
 
@@ -99,7 +98,7 @@ namespace BlazorGame.Client.Shared
 
             MediaPlayer.IsRepeating = true;
             // MediaPlayer.Play(await Content.Load<Song>("Sounds/Music"));
-            
+
             await LoadNextLevel();
         }
 
@@ -131,14 +130,18 @@ namespace BlazorGame.Client.Shared
             }
 
             // Handle polling for our input and handling high-level input
-            await HandleInput(gameTime);
+            await HandleInput(gameTime);            
 
-            // update our level, passing down the GameTime along with all of our input states
-            level.Update(gameTime, keyboardState, gamePadState,
-                         accelerometerState, Window.CurrentOrientation);
+            if (Window != null)
+            {
+                Console.WriteLine("Updating Game");
+                // update our level, passing down the GameTime along with all of our input states
+                level.Update(gameTime, keyboardState, gamePadState,
+                             accelerometerState, Window.CurrentOrientation);
 
-            if (level.Player.Velocity != Vector2.Zero)
-                virtualGamePad.NotifyPlayerIsMoving();
+                if (level.Player.Velocity != Vector2.Zero)
+                    virtualGamePad.NotifyPlayerIsMoving();
+            }
 
             await base.Update(gameTime);
         }
@@ -147,19 +150,19 @@ namespace BlazorGame.Client.Shared
         {
             // get all of our input states
             keyboardState = await _keyboard.GetState();
-            touchState = TouchPanel.GetState();
-            gamePadState = virtualGamePad.GetState(touchState, GamePad.GetState(PlayerIndex.One));
-            accelerometerState = Accelerometer.GetState();
+            // touchState = TouchPanel.GetState();            
+            // gamePadState = virtualGamePad.GetState(touchState, GamePad.GetState(PlayerIndex.One));
+            // accelerometerState = Accelerometer.GetState();
 
 #if !NETFX_CORE
             // Exit the game when back is pressed.
-            if (gamePadState.Buttons.Back == ButtonState.Pressed)
-                Exit();
+            //if (gamePadState.Buttons.Back == ButtonState.Pressed)
+            //    Exit();
 #endif
             bool continuePressed =
-                keyboardState.IsKeyDown(Keys.Space) ||
-                gamePadState.IsButtonDown(Buttons.A) ||
-                touchState.AnyTouch();
+                keyboardState.IsKeyDown(Keys.Space); // ||
+                                                     //gamePadState.IsButtonDown(Buttons.A) ||
+                                                     //touchState.AnyTouch();
 
             // Perform the appropriate action to advance the game and
             // to get the player back to playing.

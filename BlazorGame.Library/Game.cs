@@ -25,7 +25,7 @@ namespace BlazorGame.Framework
         public TimeSpan MaxElapsedTime { get; set; }
         public GameServiceContainer Services { get; }
         public TimeSpan TargetElapsedTime { get; set; }
-        public GameWindow Window { get; }
+        public GameWindow Window { get; protected set; }
 
         public event EventHandler<EventArgs> Activated;
         public event EventHandler<EventArgs> Deactivated;
@@ -89,8 +89,10 @@ namespace BlazorGame.Framework
 
             await LoadContent();
 
+            Window = GameWindow.Create(this, GraphicsDevice.Viewport.TitleSafeArea.Width, GraphicsDevice.Viewport.TitleSafeArea.Height);
+
             GraphicsDevice.OnReady += (gameTime) =>
-            {                    
+            {         
                 BeginRun();
                 Update(gameTime);
 

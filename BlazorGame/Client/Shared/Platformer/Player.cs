@@ -166,7 +166,7 @@ namespace BlazorGame.Client.Shared
             GamePadState gamePadState,
             AccelerometerState accelState,
             DisplayOrientation orientation)
-        {
+        {            
             GetInput(keyboardState, gamePadState, accelState, orientation);
 
             ApplyPhysics(gameTime);

@@ -59,7 +59,7 @@ namespace BlazorGame.Framework.Graphics
 
         public void Draw(Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
         {                    
-            _graphicsDevice.DrawTexture(texture.Name, position.X, position.Y, color);
+            _graphicsDevice.DrawTexture(texture.Name, position.X - origin.X, position.Y - origin.Y, color);
         }
 
         public void DrawString(SpriteFont spriteFont, string text, Vector2 position, Color color)

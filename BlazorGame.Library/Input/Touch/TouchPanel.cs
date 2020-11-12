@@ -20,7 +20,7 @@ namespace BlazorGame.Framework.Input.Touch
 
         public static TouchCollection GetState()
         {
-            throw new NotImplementedException();
+            throw new NotImplementedException();            
         }
 
         public static TouchPanelState GetState(GameWindow window)

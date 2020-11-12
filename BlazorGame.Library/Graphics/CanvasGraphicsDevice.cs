@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Microsoft.JSInterop;
 
 namespace BlazorGame.Framework.Graphics
@@ -7,6 +6,7 @@ namespace BlazorGame.Framework.Graphics
     public class CanvasGraphicsDevice : IGraphicsDevice
     {
         private readonly IJSRuntime _jsRuntime;
+        private TimeSpan totalGameTime = new TimeSpan();
 
         public GraphicsAdapter Adapter { get; }
         public Color BlendFactor { get; set; }
@@ -84,7 +84,10 @@ namespace BlazorGame.Framework.Graphics
         [JSInvokable]
         public void Render(float timestamp)
         {
-            OnReady(new GameTime { ElapsedGameTime = new TimeSpan((long)(timestamp * 10000)) });
+            var elapsed = new TimeSpan((long)(timestamp * 10000));
+            totalGameTime = totalGameTime.Add(elapsed);
+
+            OnReady(new GameTime { ElapsedGameTime = elapsed, TotalGameTime = totalGameTime });
         }
 
         public void Clear(ClearOptions options, Color color, float depth, int stencil)
