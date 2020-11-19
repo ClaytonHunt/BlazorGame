@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Logging;
 
 namespace BlazorGame.Client.Shared
 {
@@ -66,6 +68,9 @@ namespace BlazorGame.Client.Shared
         ContentManager content;
 
         private SoundEffect exitReachedSound;
+
+        [Inject]
+        private ILogger<Level> Logger { get; set; }
 
         #region Loading
 
@@ -276,19 +281,19 @@ namespace BlazorGame.Client.Shared
         /// </summary>
         private async Task<Tile> LoadExitTile(int x, int y)
         {
-            Console.WriteLine("Loading Exit Tile");
+            Logger.LogDebug("Loading Exit Tile");
 
             if (exit != InvalidPosition)
             {
-                Console.WriteLine("Crap");
+                Logger.LogDebug("Crap");
                 throw new NotSupportedException("A level may only have one exit.");
             }                
 
-            Console.WriteLine($"Getting Bounds");
+            Logger.LogDebug($"Getting Bounds");
 
             exit = GetBounds(x, y).Center;
 
-            Console.WriteLine("Loading Tile");
+            Logger.LogDebug("Loading Tile");
 
             return await LoadTile("Exit", TileCollision.Passable);
         }

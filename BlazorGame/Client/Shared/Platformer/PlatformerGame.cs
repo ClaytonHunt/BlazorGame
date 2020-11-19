@@ -8,6 +8,7 @@ using Microsoft.JSInterop;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace BlazorGame.Client.Shared
 {
@@ -55,12 +56,17 @@ namespace BlazorGame.Client.Shared
         // or handle exceptions, both of which can add unnecessary time to level loading.
         private const int numberOfLevels = 3;
 
+        [Inject] 
+        private ILogger<PlatformerGame> Logger { get; set; }
+
         protected override async Task OnAfterRenderAsync(bool firstRender)
         {
             await base.OnAfterRenderAsync(firstRender);
 
             if (firstRender)
             {
+                Logger.LogDebug("firstRender");
+
                 GraphicsDevice.Initialize();
                 _keyboard = new JsKeyboardDriver(JsRuntime);
                 _graphics = new GraphicsDeviceManager(this);
