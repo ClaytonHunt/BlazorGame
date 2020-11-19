@@ -113,8 +113,12 @@
 
     ns.drawSprite = (name, x, y, color) => {
         let content = contents.filter(x => x.name == name)[0];
+        var sprite = content.content;
+        if (color.r != 255 || color.g != 255 || color.b != 255) {
+             sprite = filterImage(sprite, color);
+        }        
 
-        context.drawImage(content.content, x, y);
+        context.drawImage(sprite, x, y);
     };
 
     ns.setRootDirectory = (path) => {
@@ -144,5 +148,32 @@
         });
 
         return result;
+    }
+
+    function filterImage(img, color) {
+        const density = 100;
+
+        var rIntensity = (color.r * density + 255 * (100 - density)) / 25500;
+        var gIntensity = (color.g * density + 255 * (100 - density)) / 25500;
+        var bIntensity = (color.b * density + 255 * (100 - density)) / 25500;
+ 
+        var canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        var ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+ 
+        var imageData = ctx.getImageData(0, 0, img.width, img.height);
+        var data = imageData.data;
+        for (var i = 0; i < data.length; i += 4) {
+            var luma = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
+            data[i] = Math.round(rIntensity * luma);
+            data[i+1] = Math.round(gIntensity * luma);
+            data[i+2] = Math.round(bIntensity * luma);
+        }
+ 
+        ctx.putImageData(imageData, 0, 0);
+ 
+        return canvas;
     }
 })(window.BlazorGame);

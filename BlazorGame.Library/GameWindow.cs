@@ -25,7 +25,7 @@ namespace BlazorGame.Framework
         
         public static GameWindow Create(Game game, int width, int height)
         {
-            return null;
+            return new CanvasGameWindow();        
         }
 
         public void EndScreenDeviceChange(string screenDeviceName) { }

@@ -31,7 +31,7 @@ namespace BlazorGame.Framework
 
         public bool Equals(Point other)
         {
-            throw new NotImplementedException();
+            return (X == other.X) && (Y == other.Y);
         }
     }
 }

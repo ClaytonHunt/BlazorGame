@@ -134,8 +134,9 @@ namespace BlazorGame.Client.Shared
                 }
             }
 
+
             // Allocate the tile grid.
-            tiles = new Tile[width, lines.Count];
+            tiles = new Tile[width, lines.Count];           
 
             // Loop over every tile position,
             for (int y = 0; y < Height; ++y)
@@ -179,7 +180,7 @@ namespace BlazorGame.Client.Shared
                     return new Tile(null, TileCollision.Passable);
 
                 // Exit
-                case 'X':
+                case 'X':                    
                     return await LoadExitTile(x, y);
 
                 // Gem
@@ -275,10 +276,19 @@ namespace BlazorGame.Client.Shared
         /// </summary>
         private async Task<Tile> LoadExitTile(int x, int y)
         {
+            Console.WriteLine("Loading Exit Tile");
+
             if (exit != InvalidPosition)
+            {
+                Console.WriteLine("Crap");
                 throw new NotSupportedException("A level may only have one exit.");
+            }                
+
+            Console.WriteLine($"Getting Bounds");
 
             exit = GetBounds(x, y).Center;
+
+            Console.WriteLine("Loading Tile");
 
             return await LoadTile("Exit", TileCollision.Passable);
         }
@@ -379,7 +389,8 @@ namespace BlazorGame.Client.Shared
             KeyboardState keyboardState,
             GamePadState gamePadState,
             AccelerometerState accelState,
-            DisplayOrientation orientation)
+            DisplayOrientation orientation
+            )
         {
             // Pause while the player is dead or time is expired.
             if (!Player.IsAlive || TimeRemaining == TimeSpan.Zero)
@@ -397,25 +408,25 @@ namespace BlazorGame.Client.Shared
             }
             else
             {
-                timeRemaining -= gameTime.ElapsedGameTime;
-                Player.Update(gameTime, keyboardState, gamePadState, accelState, orientation);
+                timeRemaining -= gameTime.ElapsedGameTime;                
+                Player.Update(gameTime, keyboardState, gamePadState, accelState, orientation);                
                 UpdateGems(gameTime);
 
                 // Falling off the bottom of the level kills the player.
-                if (Player.BoundingRectangle.Top >= Height * Tile.Height)
-                    OnPlayerKilled(null);
+                //if (Player.BoundingRectangle.Top >= Height * Tile.Height)
+                //    OnPlayerKilled(null);
 
                 UpdateEnemies(gameTime);
 
                 // The player has reached the exit if they are standing on the ground and
                 // his bounding rectangle contains the center of the exit tile. They can only
                 // exit when they have collected all of the gems.
-                if (Player.IsAlive &&
-                    Player.IsOnGround &&
-                    Player.BoundingRectangle.Contains(exit))
-                {
-                    OnExitReached();
-                }
+                //if (Player.IsAlive &&
+                //    Player.IsOnGround &&
+                //    Player.BoundingRectangle.Contains(exit))
+                //{
+                //    OnExitReached();
+                //}
             }
 
             // Clamp the time remaining at zero.
@@ -427,13 +438,12 @@ namespace BlazorGame.Client.Shared
         /// Animates each gem and checks to allows the player to collect them.
         /// </summary>
         private void UpdateGems(GameTime gameTime)
-        {
+        {            
             for (int i = 0; i < gems.Count; ++i)
             {
                 Gem gem = gems[i];
 
                 gem.Update(gameTime);
-
                 if (gem.BoundingCircle.Intersects(Player.BoundingRectangle))
                 {
                     gems.RemoveAt(i--);
@@ -524,13 +534,13 @@ namespace BlazorGame.Client.Shared
                 gem.Draw(gameTime, spriteBatch);
             }
 
-            // Player.Draw(gameTime, spriteBatch);
+            Player.Draw(gameTime, spriteBatch);
 
-            //foreach (Enemy enemy in enemies)
-            //    enemy.Draw(gameTime, spriteBatch);
+            foreach (Enemy enemy in enemies)
+                enemy.Draw(gameTime, spriteBatch);
 
-            //for (int i = EntityLayer + 1; i < layers.Length; ++i)
-            //    spriteBatch.Draw(layers[i], Vector2.Zero, Color.White);
+            for (int i = EntityLayer + 1; i < layers.Length; ++i)
+                spriteBatch.Draw(layers[i], Vector2.Zero, Color.White);
         }
 
         /// <summary>
@@ -545,6 +555,7 @@ namespace BlazorGame.Client.Shared
                 {
                     // If there is a visible tile in that position
                     Texture2D texture = tiles[x, y].Texture;
+
                     if (texture != null)
                     {
                         // Draw it in screen space.

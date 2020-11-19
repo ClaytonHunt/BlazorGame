@@ -69,6 +69,8 @@ namespace BlazorGame.Client.Shared
         private const float AccelerometerScale = 1.5f;
         private const Buttons JumpButton = Buttons.A;
 
+        private Task _loadingContent;
+
         /// <summary>
         /// Gets whether or not the player's feet are on the ground.
         /// </summary>
@@ -110,15 +112,14 @@ namespace BlazorGame.Client.Shared
         {
             this.level = level;
 
-            _ = LoadContent();
-
-            Reset(position);
+            _loadingContent = LoadContent(position);
+            
         }
 
         /// <summary>
         /// Loads the player sprite sheet and sounds.
         /// </summary>
-        public async Task LoadContent()
+        public async Task LoadContent(Vector2 position)
         {
             // Load animated textures.
             idleAnimation = new Animation(await Level.Content.Load<Texture2D>("Sprites/Player/Idle"), 0.1f, true);
@@ -138,6 +139,8 @@ namespace BlazorGame.Client.Shared
             killedSound = await Level.Content.Load<SoundEffect>("Sounds/PlayerKilled");
             jumpSound = await Level.Content.Load<SoundEffect>("Sounds/PlayerJump");
             fallSound = await Level.Content.Load<SoundEffect>("Sounds/PlayerFall");
+
+            Reset(position);
         }
 
         /// <summary>
@@ -166,7 +169,7 @@ namespace BlazorGame.Client.Shared
             GamePadState gamePadState,
             AccelerometerState accelState,
             DisplayOrientation orientation)
-        {
+        {            
             GetInput(keyboardState, gamePadState, accelState, orientation);
 
             ApplyPhysics(gameTime);
@@ -198,31 +201,31 @@ namespace BlazorGame.Client.Shared
             DisplayOrientation orientation)
         {
             // Get analog horizontal movement.
-            movement = gamePadState.ThumbSticks.Left.X * MoveStickScale;
+            //movement = gamePadState.ThumbSticks.Left.X * MoveStickScale;
 
             // Ignore small movements to prevent running in place.
-            if (Math.Abs(movement) < 0.5f)
-                movement = 0.0f;
+            //if (Math.Abs(movement) < 0.5f)
+            //    movement = 0.0f;
 
             // Move the player with accelerometer
-            if (Math.Abs(accelState.Acceleration.Y) > 0.10f)
-            {
-                // set our movement speed
-                movement = MathHelper.Clamp(-accelState.Acceleration.Y * AccelerometerScale, -1f, 1f);
+            //if (Math.Abs(accelState.Acceleration.Y) > 0.10f)
+            //{
+            //    // set our movement speed
+            //    movement = MathHelper.Clamp(-accelState.Acceleration.Y * AccelerometerScale, -1f, 1f);
 
-                // if we're in the LandscapeLeft orientation, we must reverse our movement
-                if (orientation == DisplayOrientation.LandscapeRight)
-                    movement = -movement;
-            }
+            //    // if we're in the LandscapeLeft orientation, we must reverse our movement
+            //    if (orientation == DisplayOrientation.LandscapeRight)
+            //        movement = -movement;
+            //}
 
             // If any digital horizontal movement input is found, override the analog movement.
-            if (gamePadState.IsButtonDown(Buttons.DPadLeft) ||
+            if (/* gamePadState.IsButtonDown(Buttons.DPadLeft) || */
                 keyboardState.IsKeyDown(Keys.Left) ||
                 keyboardState.IsKeyDown(Keys.A))
             {
                 movement = -1.0f;
             }
-            else if (gamePadState.IsButtonDown(Buttons.DPadRight) ||
+            else if (/* gamePadState.IsButtonDown(Buttons.DPadRight) || */
                      keyboardState.IsKeyDown(Keys.Right) ||
                      keyboardState.IsKeyDown(Keys.D))
             {
@@ -231,7 +234,7 @@ namespace BlazorGame.Client.Shared
 
             // Check if the player wants to jump.
             isJumping =
-                gamePadState.IsButtonDown(JumpButton) ||
+                /* gamePadState.IsButtonDown(JumpButton) || */
                 keyboardState.IsKeyDown(Keys.Space) ||
                 keyboardState.IsKeyDown(Keys.Up) ||
                 keyboardState.IsKeyDown(Keys.W);
@@ -432,6 +435,8 @@ namespace BlazorGame.Client.Shared
         /// </summary>
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
         {
+            if(!_loadingContent.IsCompleted) return;
+
             // Flip the sprite to face the way we are moving.
             if (Velocity.X > 0)
                 flip = SpriteEffects.FlipHorizontally;

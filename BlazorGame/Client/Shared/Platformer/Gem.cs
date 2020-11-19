@@ -68,7 +68,7 @@ namespace BlazorGame.Client.Shared
         }
 
         public void Update(GameTime gameTime)
-        {
+        {                    
             // Bounce control constants
             const float BounceHeight = 0.18f;
             const float BounceRate = 3.0f;
@@ -86,7 +86,7 @@ namespace BlazorGame.Client.Shared
         }
 
         public void Draw(GameTime gameTime, SpriteBatch spriteBatch)
-        {
+        {               
             spriteBatch.Draw(texture, Position, null, Color, 0.0f, origin, 1.0f, SpriteEffects.None, 0.0f);
         }
     }
