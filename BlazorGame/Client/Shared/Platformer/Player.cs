@@ -112,8 +112,7 @@ namespace BlazorGame.Client.Shared
         {
             this.level = level;
 
-            _loadingContent = LoadContent(position);
-            
+            _loadingContent = LoadContent(position);            
         }
 
         /// <summary>
@@ -169,12 +168,14 @@ namespace BlazorGame.Client.Shared
             GamePadState gamePadState,
             AccelerometerState accelState,
             DisplayOrientation orientation)
-        {            
+        {     
+            if(!_loadingContent.IsCompleted) return;
+
             GetInput(keyboardState, gamePadState, accelState, orientation);
 
             ApplyPhysics(gameTime);
 
-            if (IsAlive && IsOnGround)
+            if (IsAlive /* && IsOnGround */)
             {
                 if (Math.Abs(Velocity.X) - 0.02f > 0)
                 {
@@ -182,7 +183,7 @@ namespace BlazorGame.Client.Shared
                 }
                 else
                 {
-                    sprite.PlayAnimation(idleAnimation);
+                    sprite.PlayAnimation(idleAnimation);                    
                 }
             }
 
@@ -204,8 +205,8 @@ namespace BlazorGame.Client.Shared
             //movement = gamePadState.ThumbSticks.Left.X * MoveStickScale;
 
             // Ignore small movements to prevent running in place.
-            //if (Math.Abs(movement) < 0.5f)
-            //    movement = 0.0f;
+            if (Math.Abs(movement) < 0.5f)
+                movement = 0.0f;
 
             // Move the player with accelerometer
             //if (Math.Abs(accelState.Acceleration.Y) > 0.10f)
@@ -252,9 +253,9 @@ namespace BlazorGame.Client.Shared
             // Base velocity is a combination of horizontal movement control and
             // acceleration downward due to gravity.
             velocity.X += movement * MoveAcceleration * elapsed;
-            velocity.Y = MathHelper.Clamp(velocity.Y + GravityAcceleration * elapsed, -MaxFallSpeed, MaxFallSpeed);
+            //velocity.Y = MathHelper.Clamp(velocity.Y + GravityAcceleration * elapsed, -MaxFallSpeed, MaxFallSpeed);
 
-            velocity.Y = DoJump(velocity.Y, gameTime);
+            //velocity.Y = DoJump(velocity.Y, gameTime);
 
             // Apply pseudo-drag horizontally.
             if (IsOnGround)

@@ -82,7 +82,7 @@ namespace BlazorGame.Client.Shared
             await Content.SetRootDirectory("Content");
 
             // Create a new SpriteBatch, which can be used to draw textures.
-            _spriteBatch = new SpriteBatch(GraphicsDevice);
+            _spriteBatch = new SpriteBatch(GraphicsDevice, JsRuntime);
 
             // Load fonts
             //hudFont = Content.Load<SpriteFont>("Fonts/Hud");
@@ -216,7 +216,7 @@ namespace BlazorGame.Client.Shared
         /// Draws the game from background to foreground.
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        protected override void Draw(GameTime gameTime)
+        protected override Task Draw(GameTime gameTime)
         {
             _graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
 
@@ -228,7 +228,7 @@ namespace BlazorGame.Client.Shared
 
             _spriteBatch.End();
 
-            base.Draw(gameTime);
+            return base.Draw(gameTime);
         }
 
         private void DrawHud()

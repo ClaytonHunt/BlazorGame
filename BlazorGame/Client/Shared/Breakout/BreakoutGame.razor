@@ -1,0 +1,91 @@
+﻿@inherits Game
+@inject IJSRuntime JsRuntime
+
+@code {
+    private GraphicsDeviceManager _graphics;
+    private IKeyboardDriver _keyboard;
+    private SpriteBatch _spriteBatch;
+
+    private PlayerBar _playerBar;
+    private BreakerBall _ball;
+    private Brick _brick;
+
+    [CascadingParameter]
+    public ContentManager _content { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            GraphicsDevice.Initialize();
+            _keyboard = new JsKeyboardDriver(JsRuntime);
+            _graphics = new GraphicsDeviceManager(this);
+            _graphics.IsFullScreen = false;
+            _graphics.SupportedOrientations = DisplayOrientation.LandscapeLeft | DisplayOrientation.LandscapeRight;
+
+            _playerBar = new PlayerBar();
+            _ball = new BreakerBall();
+            _brick = new Brick();
+
+            _ball.AddCollider(_playerBar);
+            _brick.AddCollider(_ball);
+
+            await InitializeAsync();
+        }
+    }
+
+    protected override async Task LoadContent()
+    {
+        await _content.SetRootDirectory("Content");
+
+        // Create a new SpriteBatch, which can be used to draw textures.
+        _spriteBatch = new SpriteBatch(GraphicsDevice, JsRuntime);
+
+        // TODO: use this.Content to load your game content here
+        Vector2 playerBarPosition = new Vector2(
+            (float)(GraphicsDevice.Viewport.TitleSafeArea.X + (GraphicsDevice.Viewport.TitleSafeArea.Width / 2.0)),
+            (float)(GraphicsDevice.Viewport.TitleSafeArea.Height - 16.0));
+
+        Vector2 ballPosition = playerBarPosition + new Vector2(0, -16);
+
+        Vector2 brickPosition = new Vector2(
+            (float)(GraphicsDevice.Viewport.TitleSafeArea.X + (GraphicsDevice.Viewport.TitleSafeArea.Width / 2.0)),
+            (float)(GraphicsDevice.Viewport.TitleSafeArea.Y + (GraphicsDevice.Viewport.TitleSafeArea.Height / 2.0)));
+
+        _playerBar.Initialize(await _content.Load<Texture2D>("Sprites/PlayerBar"), playerBarPosition, _graphics);
+        _ball.Initialize(await _content.Load<Texture2D>("Sprites/Ball"), ballPosition, _graphics);
+        _brick.Initialize(await _content.Load<Texture2D>("Sprites/10PointBrick"), brickPosition, _graphics);
+    }
+
+    protected override async Task Update(GameTime gameTime)
+    {
+        // if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+        // Exit();
+
+        // TODO: Add your update logic here
+        var keyState = await _keyboard.GetState();
+
+        _playerBar.Update(gameTime, keyState);
+        _ball.Update(gameTime, keyState);
+        _brick.Update(gameTime, keyState);
+
+        await base.Update(gameTime);
+    }
+
+    protected override async Task Draw(GameTime gameTime)
+    {
+        _graphics.GraphicsDevice.Clear(Color.LightSlateGray);
+
+        _spriteBatch.Begin();
+
+        await _playerBar.Draw(_spriteBatch);
+        await _ball.Draw(_spriteBatch);
+        await _brick.Draw(_spriteBatch);
+
+        _spriteBatch.End();
+
+        await base.Draw(gameTime);
+    }
+}

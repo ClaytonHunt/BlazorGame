@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Data.Common;
 
 namespace BlazorGame.Framework
 {
@@ -32,6 +31,16 @@ namespace BlazorGame.Framework
         public bool Equals(Point other)
         {
             return (X == other.X) && (Y == other.Y);
+        }
+
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
     }
 }
