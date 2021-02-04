@@ -21,14 +21,14 @@ namespace BlazorGame.Framework.Graphics
             throw new NotImplementedException();
         }
 
-        public void Begin(SpriteSortMode sortMode = SpriteSortMode.Deferred, BlendState blendState = null, SamplerState samplerState = null, DepthStencilState depthStencilState = null, RasterizerState rasterizerState = null, Effect effect = null, Matrix? transformMatrix = default(Matrix?))
+        public Task Begin(SpriteSortMode sortMode = SpriteSortMode.Deferred, BlendState blendState = null, SamplerState samplerState = null, DepthStencilState depthStencilState = null, RasterizerState rasterizerState = null, Effect effect = null, Matrix? transformMatrix = default(Matrix?))
         {
-            _jsRuntime.InvokeVoidAsync("BlazorGame.clearBackbuffer");
+            return Task.CompletedTask;
         }
 
-        public void End()
+        public Task End()
         {
-            _jsRuntime.InvokeVoidAsync("BlazorGame.renderBackbuffer");
+            return Task.CompletedTask;
         }
 
         public void Draw(Texture2D texture, Rectangle destinationRectangle, Color color)

@@ -1,7 +1,6 @@
 ﻿window.BlazorGame = window.BlazorGame || {};
 (function (ns) {
     var context = null;
-    var backbuffer = null;
     var dotnetGraphics = null;
     var rootDirectory = "";
     var contents = [];
@@ -42,20 +41,12 @@
     };
 
     ns.clear = (color) => {
-        backbuffer.beginPath();
-        backbuffer.rect(0, 0, context.canvas.width, context.canvas.height);
-        backbuffer.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${(color.a / 255)})`;
-        backbuffer.fill();
-        backbuffer.closePath();
+        context.beginPath();
+        context.rect(0, 0, context.canvas.width, context.canvas.height);
+        context.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${(color.a / 255)})`;
+        context.fill();
+        context.closePath();
     };
-
-    ns.clearBackbuffer = () => {
-        backbuffer = new ImageData(buffer.x, buffer.y);
-    };
-
-    ns.renderBackbuffer = () => {
-        context.drawImage(backbuffer, 0, 0);
-    }
 
     ns.loadContent = (name) => {
         const result = new Promise((resolve, fail) => {
@@ -123,9 +114,9 @@
         var sprite = content.content;
         if (color.r != 255 || color.g != 255 || color.b != 255) {
              sprite = filterImage(sprite, color);
-        }        
+        }
 
-        backbuffer.drawImage(sprite, x, y);
+        context.drawImage(sprite, x, y);
     };
 
     ns.drawSprite = (name, x, y, top, left, bottom, right, flipH, flipV, color) => {        
@@ -139,9 +130,9 @@
         const spriteWidth = right - left;
         const spriteHeight = bottom - top;
 
-        backbuffer.scale(flipH ? -1 : 1, flipV ? -1 : 1);
-        backbuffer.drawImage(sprite, left, top, right - left, bottom - top, flipH ? -x : x, y, flipH ? -spriteWidth : spriteWidth, spriteHeight);
-        backbuffer.scale(1, 1);
+        context.scale(flipH ? -1 : 1, flipV ? -1 : 1);
+        context.drawImage(sprite, left, top, right - left, bottom - top, flipH ? -x : x, y, flipH ? -spriteWidth : spriteWidth, spriteHeight);
+        context.scale(1, 1);
     };
 
     ns.setRootDirectory = (path) => {        

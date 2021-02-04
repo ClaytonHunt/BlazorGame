@@ -23,7 +23,7 @@ namespace BlazorGame.Client.Shared.Breakout
         public Rectangle Bounds { get; set; }
         public Vector2 Position => _position;
         public Vector2 Offset => _offset;
-        public List<IPhysics2D> Colliders { get; } = new();
+        public bool IsActive { get; set; } = true;
 
         public void Initialize(Texture2D sprite, Vector2 position, GraphicsDeviceManager graphics)
         {
@@ -37,25 +37,23 @@ namespace BlazorGame.Client.Shared.Breakout
             ((IPhysics2D)this).CalculateBounds();
         }
 
-        public void AddCollider(IPhysics2D go)
+        public void Update(GameTime gameTime, KeyboardState keyState, List<IPhysics2D> colliders)
         {
-            Colliders.Add(go);
-        }
+            if (IsActive)
+            {
+                float delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-        public void Update(GameTime gameTime, KeyboardState keyState)
-        {
-            float delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
+                _position += _moveSpeed * new Vector2(delta, delta);
 
-            _position += _moveSpeed * new Vector2(delta, delta);
+                var lowerXBound = _border;
+                var lowerYBound = _border;
+                var upperXBound = (_screenWidth - _border);
+                var upperYBound = (_screenHeight - _border);
 
-            var lowerXBound = _border;
-            var lowerYBound = _border;
-            var upperXBound = (_screenWidth - _border);
-            var upperYBound = (_screenHeight - _border);
+                CalculateScreenCollision(upperYBound, lowerXBound, lowerYBound, upperXBound);
 
-            CalculateScreenCollision(upperYBound, lowerXBound, lowerYBound, upperXBound);
-
-            Colliders.Where(x => x.Bounds.Intersects(Bounds)).ToList().ForEach(HandleCollision);
+                colliders.Where(x => x != this && x.IsActive && x.Bounds.Intersects(Bounds)).ToList().ForEach(HandleCollision);
+            }
         }
 
         private void CalculateCollision(float top, float right, float bottom, float left)
@@ -104,6 +102,7 @@ namespace BlazorGame.Client.Shared.Breakout
 
             if ((_position + _offset).Y > top)
             {
+                // IsActive = false;
                 _position = _startPosition;
                 _moveSpeed.Y = ((float) new Random().NextDouble()) * _maxSpeed.Y * -1;
             }

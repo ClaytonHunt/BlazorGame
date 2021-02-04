@@ -10,7 +10,7 @@ namespace BlazorGame.Client.Shared.Breakout
         Rectangle Bounds { get; set; }
         Vector2 Position { get; }
         Vector2 Offset {get;}
-        List<IPhysics2D> Colliders { get; }
+        bool IsActive { get; set; }
 
         void HasCollided(IPhysics2D collider);
 
@@ -20,5 +20,7 @@ namespace BlazorGame.Client.Shared.Breakout
 
             Bounds = new Rectangle((int)boundPos.X, (int)boundPos.Y, Sprite.Width, Sprite.Height);
         }
+
+        void Update(GameTime gameTime, KeyboardState keyState, List<IPhysics2D> colliders);
     }
 }

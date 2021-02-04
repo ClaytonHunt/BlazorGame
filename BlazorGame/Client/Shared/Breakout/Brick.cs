@@ -16,13 +16,7 @@ namespace BlazorGame.Client.Shared.Breakout
         public Rectangle Bounds { get; set; }
         public Vector2 Position => _position;
         public Vector2 Offset => _offset;
-        public void HasCollided(IPhysics2D collider)
-        {
-            HandleCollision();
-        }
-
-        public List<IPhysics2D> Colliders { get; }= new();
-        public bool IsAlive { get; set; } = true;
+        public bool IsActive { get; set; } = true;
 
         public void Initialize(Texture2D sprite, Vector2 position, GraphicsDeviceManager graphics)
         {
@@ -33,16 +27,16 @@ namespace BlazorGame.Client.Shared.Breakout
             ((IPhysics2D)this).CalculateBounds();
         }
 
-        public void AddCollider(IPhysics2D go)
+        public void HasCollided(IPhysics2D collider)
         {
-            Colliders.Add(go);
+            HandleCollision();
         }
 
-        public void Update(GameTime gameTime, KeyboardState keyState)
+        public void Update(GameTime gameTime, KeyboardState keyState, List<IPhysics2D> colliders)
         {
-            if(IsAlive)
+            if(IsActive)
             {
-                if (Colliders.Any(x => x.Bounds.Intersects(Bounds)))
+                if (colliders.Any(x => x != this && x.IsActive && x.Bounds.Intersects(Bounds)))
                 {
                     HandleCollision();
                 }
@@ -53,7 +47,7 @@ namespace BlazorGame.Client.Shared.Breakout
 
         public async Task Draw(SpriteBatch spriteBatch)
         {
-            if (IsAlive)
+            if (IsActive)
             {
                 await spriteBatch.Draw(_sprite, _position - _offset, Color.White);
             }
@@ -61,7 +55,7 @@ namespace BlazorGame.Client.Shared.Breakout
 
         private void HandleCollision()
         {
-            IsAlive = false;
+            IsActive = false;
             _position = Vector2.Zero - _position;
         }
     }

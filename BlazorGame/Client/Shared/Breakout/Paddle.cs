@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace BlazorGame.Client.Shared.Breakout
 {
-    public class PlayerBar : IPhysics2D
+    public class Paddle : IPhysics2D
     {
         private Texture2D _sprite;
         private Vector2 _position;
@@ -18,7 +18,7 @@ namespace BlazorGame.Client.Shared.Breakout
         public Rectangle Bounds { get; set; }
         public Vector2 Position => _position;
         public Vector2 Offset => _offset;
-        public List<IPhysics2D> Colliders { get; }
+        public bool IsActive { get; set; } = true;
 
         public void Initialize(Texture2D sprite, Vector2 position, GraphicsDeviceManager graphics)
         {
@@ -30,7 +30,7 @@ namespace BlazorGame.Client.Shared.Breakout
             ((IPhysics2D)this).CalculateBounds();
         }
 
-        public void Update(GameTime gameTime, KeyboardState keyState)
+        public void Update(GameTime gameTime, KeyboardState keyState, List<IPhysics2D> colliders)
         {
             float delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
 

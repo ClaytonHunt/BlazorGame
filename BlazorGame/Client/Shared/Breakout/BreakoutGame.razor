@@ -2,13 +2,13 @@
 @inject IJSRuntime JsRuntime
 
 @code {
-    private GraphicsDeviceManager _graphics;
-    private IKeyboardDriver _keyboard;
     private SpriteBatch _spriteBatch;
+    private IKeyboardDriver _keyboard;
+    private GraphicsDeviceManager _graphics;
 
-    private PlayerBar _playerBar;
+    private Level _level;
+    private Paddle paddle;
     private BreakerBall _ball;
-    private Brick _brick;
 
     [CascadingParameter]
     public ContentManager _content { get; set; }
@@ -25,12 +25,9 @@
             _graphics.IsFullScreen = false;
             _graphics.SupportedOrientations = DisplayOrientation.LandscapeLeft | DisplayOrientation.LandscapeRight;
 
-            _playerBar = new PlayerBar();
+            paddle = new Paddle();
             _ball = new BreakerBall();
-            _brick = new Brick();
-
-            _ball.AddCollider(_playerBar);
-            _brick.AddCollider(_ball);
+            _level = new Level(paddle, _ball);
 
             await InitializeAsync();
         }
@@ -49,14 +46,11 @@
             (float)(GraphicsDevice.Viewport.TitleSafeArea.Height - 16.0));
 
         Vector2 ballPosition = playerBarPosition + new Vector2(0, -16);
-
-        Vector2 brickPosition = new Vector2(
-            (float)(GraphicsDevice.Viewport.TitleSafeArea.X + (GraphicsDevice.Viewport.TitleSafeArea.Width / 2.0)),
-            (float)(GraphicsDevice.Viewport.TitleSafeArea.Y + (GraphicsDevice.Viewport.TitleSafeArea.Height / 2.0)));
-
-        _playerBar.Initialize(await _content.Load<Texture2D>("Sprites/PlayerBar"), playerBarPosition, _graphics);
+        
+        paddle.Initialize(await _content.Load<Texture2D>("Sprites/Paddle"), playerBarPosition, _graphics);
         _ball.Initialize(await _content.Load<Texture2D>("Sprites/Ball"), ballPosition, _graphics);
-        _brick.Initialize(await _content.Load<Texture2D>("Sprites/10PointBrick"), brickPosition, _graphics);
+
+        await _level.LoadContent(_content, _graphics);
     }
 
     protected override async Task Update(GameTime gameTime)
@@ -67,9 +61,7 @@
         // TODO: Add your update logic here
         var keyState = await _keyboard.GetState();
 
-        _playerBar.Update(gameTime, keyState);
-        _ball.Update(gameTime, keyState);
-        _brick.Update(gameTime, keyState);
+        _level.Update(gameTime, keyState);
 
         await base.Update(gameTime);
     }
@@ -78,13 +70,11 @@
     {
         _graphics.GraphicsDevice.Clear(Color.LightSlateGray);
 
-        _spriteBatch.Begin();
+        await _spriteBatch.Begin();
 
-        await _playerBar.Draw(_spriteBatch);
-        await _ball.Draw(_spriteBatch);
-        await _brick.Draw(_spriteBatch);
+        await _level.Draw(_spriteBatch);
 
-        _spriteBatch.End();
+        await _spriteBatch.End();
 
         await base.Draw(gameTime);
     }
