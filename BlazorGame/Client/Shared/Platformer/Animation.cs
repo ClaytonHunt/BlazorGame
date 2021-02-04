@@ -24,12 +24,12 @@ namespace BlazorGame.Client.Shared
 
         public int FrameCount
         {
-            get { return FrameWidth / FrameHeight; }
+            get { return Texture.Width / FrameHeight; }
         }
 
         public int FrameWidth
         {
-            get { return Texture.Width; }
+            get { return Texture.Height; }
         }
 
         public int FrameHeight

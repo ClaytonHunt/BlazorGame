@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.JSInterop;
 
 namespace BlazorGame.Framework.Graphics
@@ -76,9 +77,14 @@ namespace BlazorGame.Framework.Graphics
             _jsRuntime.InvokeVoidAsync("BlazorGame.clear", color);
         }
 
-        public void DrawTexture(string name, float x, float y, Color color)
+        public async Task DrawTexture(string name, float x, float y, Color color)
         {
-            _jsRuntime.InvokeVoidAsync("BlazorGame.drawSprite", name, x, y, color);
+            await _jsRuntime.InvokeVoidAsync("BlazorGame.drawTexture", name, x, y, color);
+        }
+
+        public void DrawSprite(string name, float x, float y, float sourceTop, float sourceLeft, float sourceBottom, float sourceRight, bool flipHorizontal, bool flipVertical, Color color)
+        {            
+            _jsRuntime.InvokeVoidAsync("BlazorGame.drawSprite", name, x, y, sourceTop, sourceLeft, sourceBottom, sourceRight, flipHorizontal, flipVertical, color);
         }
 
         [JSInvokable]

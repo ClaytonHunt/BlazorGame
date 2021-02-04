@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace BlazorGame.Framework.Graphics
 {
@@ -72,6 +73,7 @@ namespace BlazorGame.Framework.Graphics
         
         // Temporary to get the ball rolling
         // TODO: Replace with proper calls
-        void DrawTexture(string name, float x, float y, Color color);
+        Task DrawTexture(string name, float x, float y, Color color);
+        void DrawSprite(string name, float x, float y, float sourceTop, float sourceLeft, float sourceBottom, float sourceRight, bool flipHorizontal, bool flipVertical, Color color);
     }
 }

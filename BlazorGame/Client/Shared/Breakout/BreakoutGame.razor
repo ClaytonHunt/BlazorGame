@@ -1,0 +1,81 @@
+﻿@inherits Game
+@inject IJSRuntime JsRuntime
+
+@code {
+    private SpriteBatch _spriteBatch;
+    private IKeyboardDriver _keyboard;
+    private GraphicsDeviceManager _graphics;
+
+    private Level _level;
+    private Paddle paddle;
+    private BreakerBall _ball;
+
+    [CascadingParameter]
+    public ContentManager _content { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            GraphicsDevice.Initialize();
+            _keyboard = new JsKeyboardDriver(JsRuntime);
+            _graphics = new GraphicsDeviceManager(this);
+            _graphics.IsFullScreen = false;
+            _graphics.SupportedOrientations = DisplayOrientation.LandscapeLeft | DisplayOrientation.LandscapeRight;
+
+            paddle = new Paddle();
+            _ball = new BreakerBall();
+            _level = new Level(paddle, _ball);
+
+            await InitializeAsync();
+        }
+    }
+
+    protected override async Task LoadContent()
+    {
+        await _content.SetRootDirectory("Content");
+
+        // Create a new SpriteBatch, which can be used to draw textures.
+        _spriteBatch = new SpriteBatch(GraphicsDevice, JsRuntime);
+
+        // TODO: use this.Content to load your game content here
+        Vector2 playerBarPosition = new Vector2(
+            (float)(GraphicsDevice.Viewport.TitleSafeArea.X + (GraphicsDevice.Viewport.TitleSafeArea.Width / 2.0)),
+            (float)(GraphicsDevice.Viewport.TitleSafeArea.Height - 16.0));
+
+        Vector2 ballPosition = playerBarPosition + new Vector2(0, -16);
+        
+        paddle.Initialize(await _content.Load<Texture2D>("Sprites/Paddle"), playerBarPosition, _graphics);
+        _ball.Initialize(await _content.Load<Texture2D>("Sprites/Ball"), ballPosition, _graphics);
+
+        await _level.LoadContent(_content, _graphics);
+    }
+
+    protected override async Task Update(GameTime gameTime)
+    {
+        // if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
+        // Exit();
+
+        // TODO: Add your update logic here
+        var keyState = await _keyboard.GetState();
+
+        _level.Update(gameTime, keyState);
+
+        await base.Update(gameTime);
+    }
+
+    protected override async Task Draw(GameTime gameTime)
+    {
+        _graphics.GraphicsDevice.Clear(Color.LightSlateGray);
+
+        await _spriteBatch.Begin();
+
+        await _level.Draw(_spriteBatch);
+
+        await _spriteBatch.End();
+
+        await base.Draw(gameTime);
+    }
+}

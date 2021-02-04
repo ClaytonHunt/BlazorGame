@@ -276,19 +276,12 @@ namespace BlazorGame.Client.Shared
         /// </summary>
         private async Task<Tile> LoadExitTile(int x, int y)
         {
-            Console.WriteLine("Loading Exit Tile");
-
             if (exit != InvalidPosition)
             {
-                Console.WriteLine("Crap");
                 throw new NotSupportedException("A level may only have one exit.");
-            }                
-
-            Console.WriteLine($"Getting Bounds");
+            }
 
             exit = GetBounds(x, y).Center;
-
-            Console.WriteLine("Loading Tile");
 
             return await LoadTile("Exit", TileCollision.Passable);
         }

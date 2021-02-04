@@ -136,7 +136,7 @@ namespace BlazorGame.Framework
             return true;
         }
 
-        protected virtual void Draw(GameTime gameTime) { }
+        protected virtual Task Draw(GameTime gameTime) { return Task.CompletedTask; }
 
         protected virtual void EndDraw() { }
 

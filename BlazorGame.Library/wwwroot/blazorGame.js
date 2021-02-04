@@ -57,9 +57,7 @@
             if (content == null) {
                 fail(`${name} not found.`);
                 return;
-            }
-
-            console.log(`Getting File: ${rootDirectory}/${content.path}`);            
+            }            
 
             var ext = content.path.substring(content.path.length - 3, content.path.length);
 
@@ -111,18 +109,33 @@
         contents.push(content);
     };
 
-    ns.drawSprite = (name, x, y, color) => {
+    ns.drawTexture = (name, x, y, color) => {
         let content = contents.filter(x => x.name == name)[0];
         var sprite = content.content;
         if (color.r != 255 || color.g != 255 || color.b != 255) {
              sprite = filterImage(sprite, color);
-        }        
+        }
 
         context.drawImage(sprite, x, y);
     };
 
-    ns.setRootDirectory = (path) => {
-        console.log(`Setting Root Directory: ${path}`);
+    ns.drawSprite = (name, x, y, top, left, bottom, right, flipH, flipV, color) => {        
+        let content = contents.filter(x => x.name == name)[0];
+        var sprite = content.content;
+
+        if (color.r != 255 || color.g != 255 || color.b != 255) {
+             sprite = filterImage(sprite, color);
+        }             
+
+        const spriteWidth = right - left;
+        const spriteHeight = bottom - top;
+
+        context.scale(flipH ? -1 : 1, flipV ? -1 : 1);
+        context.drawImage(sprite, left, top, right - left, bottom - top, flipH ? -x : x, y, flipH ? -spriteWidth : spriteWidth, spriteHeight);
+        context.scale(1, 1);
+    };
+
+    ns.setRootDirectory = (path) => {        
         rootDirectory = path;
     };
 
