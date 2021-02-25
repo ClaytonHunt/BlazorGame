@@ -52,7 +52,9 @@ namespace BlazorGame.Client.Shared.Breakout
 
                 CalculateScreenCollision(upperYBound, lowerXBound, lowerYBound, upperXBound);
 
-                colliders.Where(x => x != this && x.IsActive && x.Bounds.Intersects(Bounds)).ToList().ForEach(HandleCollision);
+                colliders.Where(x => x != this && 
+                                     x.IsActive && 
+                                     x.Bounds.Intersects(Bounds)).ToList().ForEach(HandleCollision);
             }
         }
 

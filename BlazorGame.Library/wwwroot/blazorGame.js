@@ -1,6 +1,14 @@
 ﻿window.BlazorGame = window.BlazorGame || {};
 (function (ns) {
     var context = null;
+    var program = null;
+    var positionLocation = null;
+    var positionBuffer = null;
+    var texcoordLocation = null;
+    var texcoordBuffer = null;
+    var matrixLocation = null;
+    var textureLocation = null;
+    var textureMatrixLocation = null;
     var dotnetGraphics = null;
     var rootDirectory = "";
     var contents = [];
@@ -26,8 +34,47 @@
 
         buffer.x = canvas.width;
         buffer.y = canvas.height;
-        context = canvas.getContext("2d");
+        context = canvas.getContext("webgl");
         dotnetGraphics = dotnetHelper;
+
+        var vertexShader = createShader(context, context.VERTEX_SHADER, ns.vertexShader2D);
+        var fragmentShader = createShader(context, context.FRAGMENT_SHADER, ns.fragmentShader2D);
+
+        program = createProgram(context, vertexShader, fragmentShader);
+
+        positionLocation = context.getAttribLocation(program, "a_position");
+        texcoordLocation = context.getAttribLocation(program, "a_texcoord");
+        matrixLocation = context.getUniformLocation(program, "u_matrix");
+        textureLocation = context.getUniformLocation(program, "u_texture");
+        textureMatrixLocation = context.getUniformLocation(program, "u_textureMatrix");
+
+        positionBuffer = context.createBuffer();
+        context.bindBuffer(context.ARRAY_BUFFER, positionBuffer);
+
+        var positions = [
+            0, 0,
+            0, 1,
+            1, 0,
+            1, 0,
+            0, 1,
+            1, 1
+        ];
+
+        context.bufferData(context.ARRAY_BUFFER, new Float32Array(positions), context.STATIC_DRAW);
+
+        texcoordBuffer = context.createBuffer();
+        context.bindBuffer(context.ARRAY_BUFFER, texcoordBuffer);
+
+        // Put texcoords in the buffer
+        var texcoords = [
+            0, 0,
+            0, 1,
+            1, 0,
+            1, 0,
+            0, 1,
+            1, 1,
+        ];
+        context.bufferData(context.ARRAY_BUFFER, new Float32Array(texcoords), context.STATIC_DRAW);
 
         window.requestAnimationFrame(ns.render);
     };
@@ -41,16 +88,16 @@
     };
 
     ns.clear = (color) => {
-        context.beginPath();
-        context.rect(0, 0, context.canvas.width, context.canvas.height);
-        context.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${(color.a / 255)})`;
-        context.fill();
-        context.closePath();
+        context.viewport(0, 0, context.canvas.width, context.canvas.height);
+
+        context.clearColor(color.r / 255, color.g / 255, color.b / 255, color.a / 255);
+
+        context.clear(context.COLOR_BUFFER_BIT);
     };
 
     ns.loadContent = (name) => {
         const result = new Promise((resolve, fail) => {
-            let content = contents.filter(x => x.name == name)[0];
+            let content = contents.filter(x => x.name === name)[0];
 
             console.log("Asset:", name, content);
 
@@ -61,7 +108,7 @@
 
             var ext = content.path.substring(content.path.length - 3, content.path.length);
 
-            if (ext == "wav" || ext == "mp3") {                
+            if (ext === "wav" || ext === "mp3") {                
                 const sound = new Audio();
                 sound.src = `${rootDirectory}/${content.path}`;
                 sound.oncanplay = () => {
@@ -72,17 +119,31 @@
 
                 content.content = sound;
             } else {
+                const texture = context.createTexture();
+                context.bindTexture(context.TEXTURE_2D, texture);
+
+                context.texImage2D(context.TEXTURE_2D, 0, context.RGBA, 1, 1, 0, context.RGBA, context.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
+
+                context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_S, context.CLAMP_TO_EDGE);
+                context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_T, context.CLAMP_TO_EDGE);
+                context.texParameteri(context.TEXTURE_2D, context.TEXTURE_MIN_FILTER, context.LINEAR);
+
+                content.width = 1;
+                content.height = 1;
+                content.texture = texture;
+                    
                 const image = new Image();
-                image.src = `${rootDirectory}/${content.path}`;
                 image.onload = () => {
                     content.isReady = true;
-                    content.width = content.content.width;
-                    content.height = content.content.height;
+                    content.width = image.width;
+                    content.height = image.height;
+
+                    context.bindTexture(context.TEXTURE_2D, content.texture);
+                    context.texImage2D(context.TEXTURE_2D, 0, context.RGBA, context.RGBA, context.UNSIGNED_BYTE, image);
 
                     resolve(content);
                 };
-
-                content.content = image;
+                image.src = `${rootDirectory}/${content.path}`;
             }
         });
 
@@ -109,51 +170,96 @@
         contents.push(content);
     };
 
-    ns.drawTexture = (name, x, y, color) => {
-        let content = contents.filter(x => x.name == name)[0];
-        var sprite = content.content;
-        if (color.r != 255 || color.g != 255 || color.b != 255) {
-             sprite = filterImage(sprite, color);
+    ns.drawImage = (texture, textureWidth, textureHeight, sourceX, sourceY, sourceWidth, sourceHeight, destinationX, destinationY, destinationWidth, destinationHeight) => {
+        if (destinationX === undefined) {
+            destinationX = sourceX;
+            sourceX = 0;
         }
 
-        context.drawImage(sprite, x, y);
+        if (destinationY === undefined) {
+            destinationY = sourceY;
+            sourceY = 0;
+        }
+
+        if (sourceWidth === undefined) {
+            sourceWidth = textureWidth;
+        }
+
+        if (sourceHeight === undefined) {
+            sourceHeight = textureHeight;
+        }
+
+        if (destinationWidth === undefined) {
+            destinationWidth = sourceWidth;
+            sourceWidth = textureWidth;
+        }
+
+        if (destinationHeight === undefined) {
+            destinationHeight = sourceHeight;
+            sourceHeight = textureHeight;
+        }
+
+        context.bindTexture(context.TEXTURE_2D, texture);
+
+        // Tell WebGL to use our shader program pair
+        context.useProgram(program);
+ 
+        // Setup the attributes to pull data from our buffers
+        context.bindBuffer(context.ARRAY_BUFFER, positionBuffer);
+        context.enableVertexAttribArray(positionLocation);
+        context.vertexAttribPointer(positionLocation, 2, context.FLOAT, false, 0, 0);
+        context.bindBuffer(context.ARRAY_BUFFER, texcoordBuffer);
+        context.enableVertexAttribArray(texcoordLocation);
+        context.vertexAttribPointer(texcoordLocation, 2, context.FLOAT, false, 0, 0);
+ 
+        // this matrix will convert from pixels to clip space
+        var matrix = m4.orthographic(0, context.canvas.width, context.canvas.height, 0, -1, 1);
+ 
+        // this matrix will translate our quad to dstX, dstY
+        matrix = m4.translate(matrix, destinationX, destinationY, 0);
+ 
+        // this matrix will scale our 1 unit quad
+        // from 1 unit to texWidth, texHeight units
+        matrix = m4.scale(matrix, destinationWidth, destinationHeight, 1);
+ 
+        // Set the matrix.
+        context.uniformMatrix4fv(matrixLocation, false, matrix);
+
+        // Because texture coordinates go from 0 to 1
+        // and because our texture coordinates are already a unit quad
+        // we can select an area of the texture by scaling the unit quad
+        // down
+        var texMatrix = m4.translation(sourceX / textureWidth, sourceY / textureHeight, 0);
+        texMatrix = m4.scale(texMatrix, sourceWidth / textureWidth, sourceHeight / textureHeight, 1);
+ 
+        // Set the texture matrix.
+        context.uniformMatrix4fv(textureMatrixLocation, false, texMatrix);
+ 
+        // Tell the shader to get the texture from texture unit 0
+        context.uniform1i(textureLocation, 0);
+ 
+        // draw the quad (2 triangles, 6 vertices)
+        context.drawArrays(context.TRIANGLES, 0, 6);
+    }
+
+    ns.drawTexture = (name, x, y, color) => {
+        const content = contents.filter(x => x.name === name)[0];
+
+        ns.drawImage(content.texture, content.width, content.height, x, y);
     };
 
-    ns.drawSprite = (name, x, y, top, left, bottom, right, flipH, flipV, color) => {        
-        let content = contents.filter(x => x.name == name)[0];
-        var sprite = content.content;
-
-        if (color.r != 255 || color.g != 255 || color.b != 255) {
-             sprite = filterImage(sprite, color);
-        }             
-
+    ns.drawSprite = (name, x, y, top, left, bottom, right, flipH, flipV, color) => {
+        let content = contents.filter(x => x.name === name)[0];
+        
         const spriteWidth = right - left;
         const spriteHeight = bottom - top;
-
-        context.scale(flipH ? -1 : 1, flipV ? -1 : 1);
-        context.drawImage(sprite, left, top, right - left, bottom - top, flipH ? -x : x, y, flipH ? -spriteWidth : spriteWidth, spriteHeight);
-        context.scale(1, 1);
+        
+        ns.drawImage(content.texture, left, top, spriteWidth, spriteHeight, flipH ? -x : x, y, flipH ? -spriteWidth : spriteWidth, spriteHeight);
     };
 
     ns.setRootDirectory = (path) => {        
         rootDirectory = path;
     };
-
-    ns.getBackBufferWidth = () => {
-        const result = new Promise((resolve, fail) => {
-            resolve(buffer.x);
-        });
-
-        return result;
-    }
-
-    ns.getBackBufferHeight = () => {
-        const result = new Promise((resolve, fail) => {
-            resolve(buffer.y);
-        });
-
-        return result;
-    }
 
     ns.getKeyState = () => {
         const result = new Promise((resolve, fail) => {
@@ -163,30 +269,62 @@
         return result;
     }
 
-    function filterImage(img, color) {
-        const density = 100;
+    ns.vertexShader2D = (() => {
+        var script = document.createElement("script");
+        script.type = "x-shader/x-vertex";
+        script.innerText = "attribute vec4 a_position;" +
+            "attribute vec2 a_texcoord;" +
+            "uniform mat4 u_matrix;" +
+            "uniform mat4 u_textureMatrix;" +
+            "varying vec2 v_texcoord;" +
+            "void main() {" +
+            "gl_Position = u_matrix * a_position;" +
+            "v_texcoord = (u_textureMatrix * vec4(a_texcoord, 0, 1)).xy;" +
+            "}";
 
-        var rIntensity = (color.r * density + 255 * (100 - density)) / 25500;
-        var gIntensity = (color.g * density + 255 * (100 - density)) / 25500;
-        var bIntensity = (color.b * density + 255 * (100 - density)) / 25500;
- 
-        var canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        var ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
- 
-        var imageData = ctx.getImageData(0, 0, img.width, img.height);
-        var data = imageData.data;
-        for (var i = 0; i < data.length; i += 4) {
-            var luma = 0.299 * data[i] + 0.587 * data[i+1] + 0.114 * data[i+2];
-            data[i] = Math.round(rIntensity * luma);
-            data[i+1] = Math.round(gIntensity * luma);
-            data[i+2] = Math.round(bIntensity * luma);
+        return script;
+    })();
+
+    ns.fragmentShader2D = (() => {
+        var script = document.createElement("script");
+        script.type = "x-shader/x-fragment";
+        script.innerText = "precision mediump float;" +
+            "varying vec2 v_texcoord;" +
+            "uniform sampler2D u_texture;" +
+            "void main() {" +
+            "gl_FragColor = texture2D(u_texture, v_texcoord);" +
+            "}";
+
+        return script;
+    })();
+
+    function createShader(gl, type, source) {
+        const shader = gl.createShader(type);
+        gl.shaderSource(shader, source.text);
+        gl.compileShader(shader);
+        const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
+
+        if (success) {
+            return shader;
+        }
+
+        console.log(source);
+        console.log(gl.getShaderInfoLog(shader));
+        gl.deleteShader(shader);
+    }
+
+    function createProgram(gl, vertexShader, fragmentShader) {
+        const program = gl.createProgram();
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+        const success = gl.getProgramParameter(program, gl.LINK_STATUS);
+
+        if (success) {
+            return program;
         }
  
-        ctx.putImageData(imageData, 0, 0);
- 
-        return canvas;
+        console.log(gl.getProgramInfoLog(program));
+        gl.deleteProgram(program);
     }
 })(window.BlazorGame);

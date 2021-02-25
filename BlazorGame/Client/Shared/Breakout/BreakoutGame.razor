@@ -26,7 +26,9 @@
             _graphics.SupportedOrientations = DisplayOrientation.LandscapeLeft | DisplayOrientation.LandscapeRight;
 
             paddle = new Paddle();
+
             _ball = new BreakerBall();
+
             _level = new Level(paddle, _ball);
 
             await InitializeAsync();
@@ -46,9 +48,12 @@
             (float)(GraphicsDevice.Viewport.TitleSafeArea.Height - 16.0));
 
         Vector2 ballPosition = playerBarPosition + new Vector2(0, -16);
-        
+
         paddle.Initialize(await _content.Load<Texture2D>("Sprites/Paddle"), playerBarPosition, _graphics);
-        _ball.Initialize(await _content.Load<Texture2D>("Sprites/Ball"), ballPosition, _graphics);
+
+        var ballTexture = await _content.Load<Texture2D>("Sprites/Ball");
+
+        _ball.Initialize(ballTexture, ballPosition, _graphics);
 
         await _level.LoadContent(_content, _graphics);
     }
@@ -68,7 +73,7 @@
 
     protected override async Task Draw(GameTime gameTime)
     {
-        _graphics.GraphicsDevice.Clear(Color.LightSlateGray);
+        _graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
 
         await _spriteBatch.Begin();
 

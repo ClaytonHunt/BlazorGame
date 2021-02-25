@@ -23,7 +23,9 @@ namespace BlazorGame.Client.Shared.Breakout
             Bricks[3, 5] = new Brick();
 
             physicsObjects.Add(_paddle);
+
             physicsObjects.Add(_ball);
+
             physicsObjects.Add(Bricks[0, 0]);
             physicsObjects.Add(Bricks[0, 1]);
             physicsObjects.Add(Bricks[3, 5]);
@@ -63,6 +65,7 @@ namespace BlazorGame.Client.Shared.Breakout
         public void Update(GameTime gameTime, KeyboardState keyState)
         {
             _paddle.Update(gameTime, keyState, physicsObjects);
+
             _ball.Update(gameTime, keyState, physicsObjects);
 
             foreach (var brick in Bricks)
@@ -77,6 +80,7 @@ namespace BlazorGame.Client.Shared.Breakout
         public async Task Draw(SpriteBatch spriteBatch)
         {
             await _paddle.Draw(spriteBatch);
+
             await _ball.Draw(spriteBatch);
 
             foreach (var brick in Bricks)
