@@ -42,6 +42,9 @@
 
         program = createProgram(context, vertexShader, fragmentShader);
 
+        context.enable(context.BLEND);
+        context.blendFunc(context.SRC_ALPHA, context.ONE_MINUS_SRC_ALPHA);
+
         positionLocation = context.getAttribLocation(program, "a_position");
         texcoordLocation = context.getAttribLocation(program, "a_texcoord");
         matrixLocation = context.getUniformLocation(program, "u_matrix");
@@ -292,6 +295,12 @@
             "varying vec2 v_texcoord;" +
             "uniform sampler2D u_texture;" +
             "void main() {" +
+            "if (v_texcoord.x < 0.0 ||" +
+            "v_texcoord.y < 0.0 ||" +
+            "v_texcoord.x > 1.0 ||" +
+            "v_texcoord.y > 1.0) {" +
+            "discard;" +
+            "}" +
             "gl_FragColor = texture2D(u_texture, v_texcoord);" +
             "}";
 
