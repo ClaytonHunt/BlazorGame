@@ -1,4 +1,5 @@
-﻿@inherits Game
+﻿@using System.IO
+@inherits Game
 @inject IJSRuntime JsRuntime
 
 @code {
@@ -6,6 +7,7 @@
     private IKeyboardDriver _keyboard;
     private GraphicsDeviceManager _graphics;
 
+    private int _levelIndex = -1;
     private Level _level;
     private Paddle paddle;
     private BreakerBall _ball;
@@ -29,10 +31,24 @@
 
             _ball = new BreakerBall();
 
-            _level = new Level(paddle, _ball);
+            LoadNextLevel();
 
             await InitializeAsync();
         }
+    }
+
+    private async Task LoadNextLevel()
+    {
+        _levelIndex++;
+
+        _level?.Dispose();
+
+        var levelPath = $"Content/BrickLevels/{_levelIndex}.txt";
+
+        await using var fileStream = await TitleContainer.OpenStream(levelPath);
+
+        _level = new Level(fileStream, paddle, _ball);
+        // level = new Level(Content, fileStream, levelIndex);
     }
 
     protected override async Task LoadContent()
@@ -67,6 +83,12 @@
         var keyState = await _keyboard.GetState();
 
         _level.Update(gameTime, keyState);
+
+        if (_level.LevelCleared)
+        {
+            await LoadNextLevel();
+            await _level.LoadContent(_content, _graphics);
+        }
 
         await base.Update(gameTime);
     }

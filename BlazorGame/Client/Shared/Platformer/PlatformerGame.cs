@@ -8,6 +8,7 @@ using Microsoft.JSInterop;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using BlazorGame.Client.Shared.Platformer;
 
 namespace BlazorGame.Client.Shared
 {
@@ -200,7 +201,7 @@ namespace BlazorGame.Client.Shared
 
             // Load the level.
             string levelPath = string.Format("Content/Levels/{0}.txt", levelIndex);
-            using (Stream fileStream = await TitleContainer.OpenStream(levelPath))
+            await using (Stream fileStream = await TitleContainer.OpenStream(levelPath))
             {
                 level = new Level(Content, fileStream, levelIndex);
             }

@@ -34,15 +34,14 @@ namespace BlazorGame.Client.Shared.Breakout
 
         public void Update(GameTime gameTime, KeyboardState keyState, List<IPhysics2D> colliders)
         {
-            if(IsActive)
-            {
-                if (colliders.Any(x => x != this && x.IsActive && x.Bounds.Intersects(Bounds)))
-                {
-                    HandleCollision();
-                }
+            if (!IsActive) return;
 
-                ((IPhysics2D)this).CalculateBounds();
+            if (colliders.Any(x => x != this && x.IsActive && x.Bounds.Intersects(Bounds)))
+            {
+                HandleCollision();
             }
+
+            ((IPhysics2D)this).CalculateBounds();
         }
 
         public async Task Draw(SpriteBatch spriteBatch)

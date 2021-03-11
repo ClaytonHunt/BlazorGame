@@ -4,6 +4,7 @@ using BlazorGame.Framework.Graphics;
 using BlazorGame.Framework.Input;
 using System;
 using System.Threading.Tasks;
+using BlazorGame.Client.Shared.Platformer;
 
 namespace BlazorGame.Client.Shared
 {

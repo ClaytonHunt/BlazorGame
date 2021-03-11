@@ -2,6 +2,7 @@
 using BlazorGame.Framework.Graphics;
 using System;
 using System.Threading.Tasks;
+using BlazorGame.Client.Shared.Platformer;
 
 namespace BlazorGame.Client.Shared
 {

@@ -91,15 +91,15 @@ namespace BlazorGame.Framework
 
             Window = GameWindow.Create(this, GraphicsDevice.Viewport.TitleSafeArea.Width, GraphicsDevice.Viewport.TitleSafeArea.Height);
 
-            GraphicsDevice.OnReady += (gameTime) =>
+            GraphicsDevice.OnReady += async (gameTime) =>
             {         
-                BeginRun();
-                Update(gameTime);
+                await BeginRun();
+                await Update(gameTime);
 
-                if (BeginDraw())
+                if (await BeginDraw())
                 {
-                    Draw(gameTime);
-                    EndDraw();
+                    await Draw(gameTime);
+                    await EndDraw();
                 }
             };            
         }
@@ -114,7 +114,7 @@ namespace BlazorGame.Framework
             throw new NotImplementedException();
         }
 
-        protected virtual void BeginRun() { }
+        protected virtual async Task BeginRun() => await Task.CompletedTask;
 
         protected virtual void EndRun()
         {
@@ -131,14 +131,14 @@ namespace BlazorGame.Framework
             return Task.CompletedTask;
         }
 
-        protected virtual bool BeginDraw()
+        protected virtual Task<bool> BeginDraw()
         {
-            return true;
+            return Task.FromResult(true);
         }
 
         protected virtual Task Draw(GameTime gameTime) { return Task.CompletedTask; }
 
-        protected virtual void EndDraw() { }
+        protected virtual Task EndDraw() => Task.CompletedTask;
 
         protected virtual void OnActivated(object sender, EventArgs args)
         {

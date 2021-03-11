@@ -1,14 +1,14 @@
-﻿using BlazorGame.Framework.Audio;
-using BlazorGame.Framework.Content;
-using BlazorGame.Framework;
-using BlazorGame.Framework.Graphics;
-using BlazorGame.Framework.Input;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using BlazorGame.Framework;
+using BlazorGame.Framework.Audio;
+using BlazorGame.Framework.Content;
+using BlazorGame.Framework.Graphics;
+using BlazorGame.Framework.Input;
 
-namespace BlazorGame.Client.Shared
+namespace BlazorGame.Client.Shared.Platformer
 {
     public class Level : IDisposable
     {
