@@ -25,14 +25,14 @@ namespace BlazorGame.Client.Shared.Breakout
             _sprite = sprite;
             _position = position;
             _screenWidth = graphics.GraphicsDevice.Viewport.TitleSafeArea.Width;
-            _offset = new Vector2(_sprite.Width / 2, _sprite.Height / 2);
+            _offset = new Vector2(_sprite.Width / 2f, _sprite.Height / 2f);
 
             ((IPhysics2D)this).CalculateBounds();
         }
 
         public void Update(GameTime gameTime, KeyboardState keyState, List<IPhysics2D> colliders)
         {
-            float delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            var delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             if(keyState.IsKeyDown(Keys.A) && (_position - _offset).X > _border)
             {

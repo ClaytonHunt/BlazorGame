@@ -1,9 +1,12 @@
-﻿namespace BlazorGame.Framework
+﻿using System.Threading.Tasks;
+
+namespace BlazorGame.Framework
 {
     public interface IGraphicsDeviceManager
     {
-        bool BeginDraw();
-        void CreateDevice();
-        void EndDraw();
+        Task ApplyChanges();
+        Task<bool> BeginDraw();
+        Task CreateDevice();
+        Task EndDraw();
     }
 }

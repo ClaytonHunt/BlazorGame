@@ -1,24 +1,28 @@
 ﻿using System;
 using System.IO;
-using System.Text.Json.Serialization;
 
 namespace BlazorGame.Framework.Graphics
 {
     public class Texture2D : Texture, IContent, IDisposable
     {
-        public Rectangle Bounds { get; }
-        protected bool Mipmap { get; }
-        protected SampleDescription SampleDescription { get; }
-        protected bool Shared { get; }
+        private readonly IGraphicsDevice _graphicsDevice;
+
         public int Width { get; set; }
-        public int Height { get; set; }        
+        public int Height { get; set; }
         public string Path { get;set; }
+        public Rectangle Bounds { get; }
+        
+        protected bool Mipmap { get; }
+        protected bool Shared { get; }
+        protected SampleDescription SampleDescription { get; }
 
         public Texture2D() { }
 
         public Texture2D(IGraphicsDevice graphicsDevice, int width, int height)
         {
-            throw new NotImplementedException("Constructor 1");
+            Width = width;
+            Height = height;
+            _graphicsDevice = graphicsDevice;
         }
 
         public Texture2D(IGraphicsDevice graphicsDevice, int width, int height, bool mipmap, SurfaceFormat format)

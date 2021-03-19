@@ -1,11 +1,10 @@
+using System.Linq.Expressions;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System.Linq;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace BlazorGame.WASM.Server
 {
@@ -22,6 +21,13 @@ namespace BlazorGame.WASM.Server
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            var provider = new FileExtensionContentTypeProvider();
+            provider.Mappings[".spritefont"] = "text/xml";
+
+            services.Configure<StaticFileOptions>(options =>
+            {
+                options.ContentTypeProvider = provider;
+            });
 
             services.AddControllersWithViews();
             services.AddRazorPages();

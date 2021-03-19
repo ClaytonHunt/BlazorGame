@@ -9,75 +9,71 @@ namespace BlazorGame.Client.Shared.Breakout
 {
     public class BreakerBall : IPhysics2D
     {
-        private Texture2D _sprite;
-        private Vector2 _position;
-        private Vector2 _startPosition;
+        private const float Border = 0;
         private int _screenWidth;
         private int _screenHeight;
-        private Vector2 _offset;
-        private Vector2 _maxSpeed = new(256, 256);
+        private Vector2 _startPosition;
         private Vector2 _moveSpeed = new(256, 256);
-        private float _border = 0;
-
-        public Texture2D Sprite => _sprite;
+        private readonly Vector2 _maxSpeed = new(256, 256);
+        
         public Rectangle Bounds { get; set; }
-        public Vector2 Position => _position;
-        public Vector2 Offset => _offset;
         public bool IsActive { get; set; } = true;
-
+        public Vector2 Offset { get; private set; }
+        public Texture2D Sprite { get; private set; }
+        public Vector2 Position { get; private set; }
+        
         public void Initialize(Texture2D sprite, Vector2 position, GraphicsDeviceManager graphics)
         {
-            _sprite = sprite;
+            Sprite = sprite;
             _startPosition = position;
-            _position = position;
+            Position = position;
             _screenWidth = graphics.GraphicsDevice.Viewport.TitleSafeArea.Width;
             _screenHeight = graphics.GraphicsDevice.Viewport.TitleSafeArea.Height;
-            _offset = new Vector2(_sprite.Width / 2, _sprite.Height / 2);
+            Offset = new Vector2(Sprite.Width / 2f, Sprite.Height / 2f);
 
             ((IPhysics2D)this).CalculateBounds();
         }
 
         public void Update(GameTime gameTime, KeyboardState keyState, List<IPhysics2D> colliders)
         {
-            if (IsActive)
-            {
-                float delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
+            if (!IsActive) return;
 
-                _position += _moveSpeed * new Vector2(delta, delta);
+            var delta = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-                var lowerXBound = _border;
-                var lowerYBound = _border;
-                var upperXBound = (_screenWidth - _border);
-                var upperYBound = (_screenHeight - _border);
+            Position += _moveSpeed * new Vector2(delta, delta);
 
-                CalculateScreenCollision(upperYBound, lowerXBound, lowerYBound, upperXBound);
+            const float lowerXBound = Border;
+            const float lowerYBound = Border;
+            var upperXBound = (_screenWidth - Border);
+            var upperYBound = (_screenHeight - Border);
 
-                colliders.Where(x => x != this && 
-                                     x.IsActive && 
-                                     x.Bounds.Intersects(Bounds)).ToList().ForEach(HandleCollision);
-            }
+            CalculateScreenCollision(upperYBound, lowerXBound, lowerYBound, upperXBound);
+
+            colliders.Where(x => x != this && 
+                                 x.IsActive && 
+                                 x.Bounds.Intersects(Bounds)).ToList().ForEach(HandleCollision);
         }
 
         private void CalculateCollision(float top, float right, float bottom, float left)
         {
             // TODO: Something not right with this method
 
-            if((_position - _offset).X < right && (_position + _offset).X > left) { }
-            else if ((_position - _offset).X < right)
+            if((Position - Offset).X < right && (Position + Offset).X > left) { }
+            else if ((Position - Offset).X < right)
             {
                 _moveSpeed.X = ((float) new Random().NextDouble()) * _maxSpeed.X;
             }
-            else if ((_position + _offset).X > left)
+            else if ((Position + Offset).X > left)
             {
                 _moveSpeed.X = ((float) new Random().NextDouble()) * _maxSpeed.X * -1;
             }
 
-            if ((_position - _offset).Y < bottom)
+            if ((Position - Offset).Y < bottom)
             {
                 _moveSpeed.Y = ((float) new Random().NextDouble()) * _maxSpeed.Y;
             }
 
-            if ((_position + _offset).Y > top)
+            if ((Position + Offset).Y > top)
             {
                 _moveSpeed.Y = ((float) new Random().NextDouble()) * _maxSpeed.Y * -1;
             }
@@ -87,25 +83,25 @@ namespace BlazorGame.Client.Shared.Breakout
 
         private void CalculateScreenCollision(float top, float right, float bottom, float left)
         {
-            if ((_position - _offset).X < right)
+            if ((Position - Offset).X < right)
             {
                 _moveSpeed.X = ((float) new Random().NextDouble()) * _maxSpeed.X;
             }
 
-            if ((_position + _offset).X > left)
+            if ((Position + Offset).X > left)
             {
                 _moveSpeed.X = ((float) new Random().NextDouble()) * _maxSpeed.X * -1;
             }
 
-            if ((_position - _offset).Y < bottom)
+            if ((Position - Offset).Y < bottom)
             {
                 _moveSpeed.Y = ((float) new Random().NextDouble()) * _maxSpeed.Y;
             }
 
-            if ((_position + _offset).Y > top)
+            if ((Position + Offset).Y > top)
             {
                 // IsActive = false;
-                _position = _startPosition;
+                Position = _startPosition;
                 _moveSpeed.Y = ((float) new Random().NextDouble()) * _maxSpeed.Y * -1;
             }
 
@@ -114,7 +110,7 @@ namespace BlazorGame.Client.Shared.Breakout
 
         public async Task Draw(SpriteBatch spriteBatch)
         {
-            await spriteBatch.Draw(_sprite, _position - _offset, Color.White);
+            await spriteBatch.Draw(Sprite, Position - Offset, Color.White);
         }
 
         public void HasCollided(IPhysics2D collider)

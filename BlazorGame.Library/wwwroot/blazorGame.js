@@ -1,5 +1,7 @@
 ﻿window.BlazorGame = window.BlazorGame || {};
 (function (ns) {
+    var renderTargets = [];
+    var canvasId = "default";
     var context = null;
     var program = null;
     var positionLocation = null;
@@ -13,7 +15,6 @@
     var rootDirectory = "";
     var contents = [];
     var previousTimestamp = 0;
-    var buffer = { x: 0, y: 0 };
     var keys = new Set();
 
     window.addEventListener("keydown",
@@ -29,27 +30,19 @@
         false);
 
 
-    ns.initialize = (dotnetHelper, canvasId) => {
-        var canvas = document.getElementById(canvasId);
-
-        buffer.x = canvas.width;
-        buffer.y = canvas.height;
-        context = canvas.getContext("webgl");
+    ns.initialize = (dotnetHelper, drawId, presentationParameters) => {
+        console.log("initialize Called");
         dotnetGraphics = dotnetHelper;
 
-        var vertexShader = createShader(context, context.VERTEX_SHADER, ns.vertexShader2D);
-        var fragmentShader = createShader(context, context.FRAGMENT_SHADER, ns.fragmentShader2D);
+        canvasId = drawId;
 
-        program = createProgram(context, vertexShader, fragmentShader);
+        var renderTarget = {
+            id: canvasId,
+            width: presentationParameters.backBufferWidth,
+            height: presentationParameters.backBufferHeight
+        };
 
-        context.enable(context.BLEND);
-        context.blendFunc(context.SRC_ALPHA, context.ONE_MINUS_SRC_ALPHA);
-
-        positionLocation = context.getAttribLocation(program, "a_position");
-        texcoordLocation = context.getAttribLocation(program, "a_texcoord");
-        matrixLocation = context.getUniformLocation(program, "u_matrix");
-        textureLocation = context.getUniformLocation(program, "u_texture");
-        textureMatrixLocation = context.getUniformLocation(program, "u_textureMatrix");
+        ns.setRenderTarget(renderTarget);
 
         positionBuffer = context.createBuffer();
         context.bindBuffer(context.ARRAY_BUFFER, positionBuffer);
@@ -82,6 +75,60 @@
         window.requestAnimationFrame(ns.render);
     };
 
+    ns.createRenderTarget2D = (renderTarget) => {
+        console.log("createRenderTarget2D Called");
+        if (renderTarget == null) {
+            renderTarget = { id: canvasId };
+        }
+
+        var canvas = document.getElementById(renderTarget.id);
+
+        if (!canvas) {
+            canvas = document.createElement("canvas");
+            canvas.id = renderTarget.id;
+        }
+
+        canvas.height = renderTarget.height;
+        canvas.width = renderTarget.width;
+
+        var ctx = canvas.getContext("webgl");
+
+        var vertexShader = createShader(ctx, ctx.VERTEX_SHADER, ns.vertexShader2D);
+        var fragmentShader = createShader(ctx, ctx.FRAGMENT_SHADER, ns.fragmentShader2D);
+
+        program = createProgram(ctx, vertexShader, fragmentShader);
+
+        ctx.enable(ctx.BLEND);
+        ctx.blendFunc(ctx.SRC_ALPHA, ctx.ONE_MINUS_SRC_ALPHA);
+
+        positionLocation = ctx.getAttribLocation(program, "a_position");
+        texcoordLocation = ctx.getAttribLocation(program, "a_texcoord");
+        matrixLocation = ctx.getUniformLocation(program, "u_matrix");
+        textureLocation = ctx.getUniformLocation(program, "u_texture");
+        textureMatrixLocation = ctx.getUniformLocation(program, "u_textureMatrix");
+
+        renderTargets.push({ id: renderTarget.id, context: ctx });
+
+        console.log("RenderTargets: ", renderTargets);
+    };
+
+    ns.setRenderTarget = (renderTarget) => {
+        console.log("setRenderTarget Called");
+        if (renderTarget == null) {
+            renderTarget = { id: canvasId };
+        }
+
+        var target = renderTargets.find(t => t.id === renderTarget.id);
+
+        if (!target) {
+            ns.createRenderTarget2D(renderTarget);
+
+            target = renderTargets.find(t => t.id === renderTarget.id);
+        }
+
+        context = target.context;
+    };
+
     ns.render = (timestamp) => {
         const currentTimeStamp = timestamp - previousTimestamp;
         previousTimestamp = timestamp;
@@ -107,51 +154,38 @@
             if (content == null) {
                 fail(`${name} not found.`);
                 return;
-            }            
+            }
 
             var ext = content.path.substring(content.path.length - 3, content.path.length);
 
-            if (ext === "wav" || ext === "mp3") {                
-                const sound = new Audio();
-                sound.src = `${rootDirectory}/${content.path}`;
-                sound.oncanplay = () => {
-                    content.isReady = true;
+            if (ext === "wav" || ext === "mp3") {
+                importSound(content, resolve);
+            } else if (ext === "spritefont" || ext === "xml") {
+                fetch(`${rootDirectory}/${content.path}`).then(response => {
+                    var result = {
+                        characters: ["A", "B", "C", "D"],
+                        lineSpacing: 18,
+                        spacing: 5,
+                        name: content.name,
+                        path: content.path
+                    };
 
-                    resolve(content);
-                };
-
-                content.content = sound;
+                    resolve(result);
+                }).catch(e => console.error(e));
             } else {
-                const texture = context.createTexture();
-                context.bindTexture(context.TEXTURE_2D, texture);
-
-                context.texImage2D(context.TEXTURE_2D, 0, context.RGBA, 1, 1, 0, context.RGBA, context.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
-
-                context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_S, context.CLAMP_TO_EDGE);
-                context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_T, context.CLAMP_TO_EDGE);
-                context.texParameteri(context.TEXTURE_2D, context.TEXTURE_MIN_FILTER, context.LINEAR);
-
-                content.width = 1;
-                content.height = 1;
-                content.texture = texture;
-                    
-                const image = new Image();
-                image.onload = () => {
-                    content.isReady = true;
-                    content.width = image.width;
-                    content.height = image.height;
-
-                    context.bindTexture(context.TEXTURE_2D, content.texture);
-                    context.texImage2D(context.TEXTURE_2D, 0, context.RGBA, context.RGBA, context.UNSIGNED_BYTE, image);
-
-                    resolve(content);
-                };
-                image.src = `${rootDirectory}/${content.path}`;
+                importImage(content, resolve);
             }
         });
 
 
         return result;
+    };
+
+    ns.unloadContent = (name) => {
+        let content = contents.filter(x => x.name === name)[0];
+
+        delete content.texture;
+        delete content.content;
     };
 
     ns.playAudio = (name, isRepeating) => {
@@ -206,7 +240,7 @@
 
         // Tell WebGL to use our shader program pair
         context.useProgram(program);
- 
+
         // Setup the attributes to pull data from our buffers
         context.bindBuffer(context.ARRAY_BUFFER, positionBuffer);
         context.enableVertexAttribArray(positionLocation);
@@ -214,17 +248,17 @@
         context.bindBuffer(context.ARRAY_BUFFER, texcoordBuffer);
         context.enableVertexAttribArray(texcoordLocation);
         context.vertexAttribPointer(texcoordLocation, 2, context.FLOAT, false, 0, 0);
- 
+
         // this matrix will convert from pixels to clip space
         var matrix = m4.orthographic(0, context.canvas.width, context.canvas.height, 0, -1, 1);
- 
+
         // this matrix will translate our quad to dstX, dstY
         matrix = m4.translate(matrix, destinationX, destinationY, 0);
- 
+
         // this matrix will scale our 1 unit quad
         // from 1 unit to texWidth, texHeight units
         matrix = m4.scale(matrix, destinationWidth, destinationHeight, 1);
- 
+
         // Set the matrix.
         context.uniformMatrix4fv(matrixLocation, false, matrix);
 
@@ -234,13 +268,13 @@
         // down
         var texMatrix = m4.translation(sourceX / textureWidth, sourceY / textureHeight, 0);
         texMatrix = m4.scale(texMatrix, sourceWidth / textureWidth, sourceHeight / textureHeight, 1);
- 
+
         // Set the texture matrix.
         context.uniformMatrix4fv(textureMatrixLocation, false, texMatrix);
- 
+
         // Tell the shader to get the texture from texture unit 0
         context.uniform1i(textureLocation, 0);
- 
+
         // draw the quad (2 triangles, 6 vertices)
         context.drawArrays(context.TRIANGLES, 0, 6);
     }
@@ -252,15 +286,39 @@
     };
 
     ns.drawSprite = (name, x, y, top, left, bottom, right, flipH, flipV, color) => {
-        let content = contents.filter(x => x.name === name)[0];
-        
+        let content = contents.find(x => x.name === name);
+
+        if (!content) {
+            throw `Couldn't Find ${name}`;
+        }
+
         const spriteWidth = right - left;
         const spriteHeight = bottom - top;
-        
+
         ns.drawImage(content.texture, left, top, spriteWidth, spriteHeight, flipH ? -x : x, y, flipH ? -spriteWidth : spriteWidth, spriteHeight);
     };
 
-    ns.setRootDirectory = (path) => {        
+    ns.drawString = (spriteFont, text, position, color) => {
+        var canvas = document.getElementById("font-canvas");
+
+        if (!canvas) {
+            canvas = document.createElement("canvas");
+            canvas.id = "font-canvas";
+            document.body.appendChild(canvas);
+        }
+
+        canvas.width = context.canvas.width;
+        canvas.height = context.canvas.height;
+
+        var ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = `rgba(${color.r},${color.g},${color.b},${color.a})`;
+        ctx.textBaseline = "top";
+        ctx.font = "18px Arial";
+        ctx.fillText(text, position.x || 0, position.y || 0);
+    };
+
+    ns.setRootDirectory = (path) => {
         rootDirectory = path;
     };
 
@@ -320,6 +378,8 @@
         console.log(source);
         console.log(gl.getShaderInfoLog(shader));
         gl.deleteShader(shader);
+
+        return null;
     }
 
     function createProgram(gl, vertexShader, fragmentShader) {
@@ -332,8 +392,50 @@
         if (success) {
             return program;
         }
- 
+
         console.log(gl.getProgramInfoLog(program));
         gl.deleteProgram(program);
+
+        return null;
+    }
+
+    function importSound(content, cb) {
+        const sound = new Audio();
+        sound.src = `${rootDirectory}/${content.path}`;
+        sound.oncanplay = () => {
+            content.isReady = true;
+
+            cb(content);
+        };
+
+        content.content = sound;
+    }
+
+    function importImage(content, cb) {
+        const texture = context.createTexture();
+        context.bindTexture(context.TEXTURE_2D, texture);
+
+        context.texImage2D(context.TEXTURE_2D, 0, context.RGBA, 1, 1, 0, context.RGBA, context.UNSIGNED_BYTE, new Uint8Array([0, 0, 255, 255]));
+
+        context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_S, context.CLAMP_TO_EDGE);
+        context.texParameteri(context.TEXTURE_2D, context.TEXTURE_WRAP_T, context.CLAMP_TO_EDGE);
+        context.texParameteri(context.TEXTURE_2D, context.TEXTURE_MIN_FILTER, context.LINEAR);
+
+        content.width = 1;
+        content.height = 1;
+        content.texture = texture;
+
+        const image = new Image();
+        image.onload = () => {
+            content.isReady = true;
+            content.width = image.width;
+            content.height = image.height;
+
+            context.bindTexture(context.TEXTURE_2D, content.texture);
+            context.texImage2D(context.TEXTURE_2D, 0, context.RGBA, context.RGBA, context.UNSIGNED_BYTE, image);
+
+            cb(content);
+        };
+        image.src = `${rootDirectory}/${content.path}`;
     }
 })(window.BlazorGame);

@@ -1,0 +1,64 @@
+﻿@inherits Game
+@inject IJSRuntime JsRuntime
+
+@code {
+    private SpriteBatch _spriteBatch;
+    private GraphicsDeviceManager _graphics;
+
+    private IKeyboardDriver _keyboard;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            _keyboard = new JsKeyboardDriver(JsRuntime);
+
+            _graphics = new GraphicsDeviceManager(this)
+            {
+                IsFullScreen = false
+            };
+
+            await InitializeAsync();
+        }
+    }
+
+    protected override async Task InitializeAsync()
+    {
+        _graphics.PreferredBackBufferWidth = (int) ScreenManager.Instance.Dimensions.X;
+        _graphics.PreferredBackBufferHeight = (int)ScreenManager.Instance.Dimensions.Y;
+
+        await _graphics.ApplyChanges();
+
+        await base.InitializeAsync();
+    }
+
+    protected override async Task LoadContent()
+    {
+        _spriteBatch = new SpriteBatch(GraphicsDevice, JsRuntime);
+
+        ScreenManager.Instance.GraphicsDevice = GraphicsDevice;
+        ScreenManager.Instance.SpriteBatch = _spriteBatch;
+
+        await ScreenManager.Instance.LoadContent(Content);
+    }
+
+    protected override async Task UnloadContent()
+    {
+        await ScreenManager.Instance.UnloadContent();
+    }
+
+    protected override async Task Update(GameTime gameTime)
+    {
+        await ScreenManager.Instance.Update(gameTime);
+    }
+
+    protected override async Task Draw(GameTime gameTime)
+    {
+        await GraphicsDevice.Clear(Color.CornflowerBlue);
+
+        await ScreenManager.Instance.Draw(_spriteBatch);
+    }
+
+}

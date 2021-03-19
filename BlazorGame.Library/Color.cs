@@ -9,12 +9,13 @@ namespace BlazorGame.Framework
         public byte G { get; set; }
         public byte B { get; set; }
 
-        public static Color Black => new Color(0, 0, 0, 255);
-        public static Color CornflowerBlue => new Color(100, 149, 237, 255);
-        public static Color LightSlateGray => new Color(119, 136, 153, 255);
-        public static Color Red => new Color(255, 0, 0, 255);
-        public static Color White => new Color(255, 255, 255, 255);
-        public static Color Yellow => new Color(255, 255, 0, 255);
+        public static Color Black => new(0, 0, 0, 255);
+        public static Color CornflowerBlue => new(100, 149, 237, 255);
+        public static Color LightSlateGray => new(119, 136, 153, 255);
+        public static Color Red => new(255, 0, 0, 255);
+        public static Color White => new(255, 255, 255, 255);
+        public static Color Yellow => new(255, 255, 0, 255);
+        public static Color Transparent => new(0, 0, 0, 0);
 
         public Color(Color color, int alpha)
         {
@@ -178,7 +179,8 @@ namespace BlazorGame.Framework
 
         public static Color operator *(Color value, float scale)
         {
-            throw new NotImplementedException();
+            return new Color(Math.Min(value.R * scale, 255), Math.Min(value.G * scale, 255),
+                Math.Min(value.B * scale, 255), Math.Min(value.A * scale, 255));
         }
 
         public static Color operator *(float scale, Color value)

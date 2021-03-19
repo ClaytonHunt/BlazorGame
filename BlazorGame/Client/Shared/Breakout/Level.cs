@@ -15,6 +15,7 @@ namespace BlazorGame.Client.Shared.Breakout
         private Brick[,] _bricks;
         private readonly List<IPhysics2D> _physicsObjects = new();
         private int _brickCount = -1;
+        private SpriteFont _font;
 
         public bool LevelCleared => _brickCount == 0;
 
@@ -32,8 +33,8 @@ namespace BlazorGame.Client.Shared.Breakout
 
         private async Task LoadLevel(Stream contents)
         {
-            int width = 0;
-            int height = 0;
+            var width = 0;
+            var height = 0;
 
             var lines = new List<string>();
             using (var reader = new StreamReader(contents))
@@ -67,11 +68,10 @@ namespace BlazorGame.Client.Shared.Breakout
                     // to load each tile.
                     var brickType = lines[y][x];
 
-                    if (brickType != '.')
-                    {
-                        _brickCount++;
-                        _bricks[y, x] = await LoadBrick(brickType);
-                    }
+                    if (brickType == '.') continue;
+
+                    _brickCount++;
+                    _bricks[y, x] = await LoadBrick(brickType);
                 }
             }
         }
@@ -87,6 +87,7 @@ namespace BlazorGame.Client.Shared.Breakout
 
         public async Task LoadContent(ContentManager content, GraphicsDeviceManager graphics)
         {
+            _font = await content.Load<SpriteFont>("Fonts/Hud");
             var tileSafeArea = graphics.GraphicsDevice.Viewport.TitleSafeArea;
             var brick10Texture = await content.Load<Texture2D>("Sprites/10PointBrick");
 
@@ -142,6 +143,8 @@ namespace BlazorGame.Client.Shared.Breakout
             { 
                 await brick.Draw(spriteBatch);
             }
+
+            await spriteBatch.DrawString(_font, "A", Vector2.Zero, Color.Yellow);
         }
 
         public void Dispose()

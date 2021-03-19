@@ -4,6 +4,8 @@ namespace BlazorGame.Framework.Graphics
 {
     public class RenderTargetCube : TextureCube, IDisposable, IRenderTarget
     {
+        public Guid Id { get; init; }
+
         public DepthFormat DepthStencilFormat { get; }
         public bool IsContentLost { get; }
         public int MultiSampleCount { get; }
@@ -13,11 +15,13 @@ namespace BlazorGame.Framework.Graphics
 
         public RenderTargetCube(IGraphicsDevice graphicsDevice, int size, bool mipMap, SurfaceFormat preferredFormat, DepthFormat preferredDepthFormat) : base(graphicsDevice, size, mipMap, preferredFormat)
         {
+            Id = Guid.NewGuid();
             throw new NotImplementedException();
         }
 
         public RenderTargetCube(IGraphicsDevice graphicsDevice, int size, bool mipMap, SurfaceFormat preferredFormat, DepthFormat preferredDepthFormat, int preferredMultiSampleCount, RenderTargetUsage usage) : base(graphicsDevice, size, mipMap, preferredFormat)
         {
+            Id = Guid.NewGuid();
             throw new NotImplementedException();
         }
 

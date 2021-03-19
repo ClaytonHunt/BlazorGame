@@ -32,6 +32,16 @@ namespace BlazorGame.Framework
         public event EventHandler<EventArgs> Disposed;
         public event EventHandler<EventArgs> Exiting;
 
+        protected override async Task OnAfterRenderAsync(bool firstRender)
+        {
+            await base.OnAfterRenderAsync(firstRender);
+
+            if (firstRender)
+            {
+                await GraphicsDevice.Initialize();
+            }
+        }
+
         public void Run()
         {
 
@@ -109,9 +119,9 @@ namespace BlazorGame.Framework
             return Task.CompletedTask;
         }
 
-        protected virtual void UnloadContent()
+        protected virtual Task UnloadContent()
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         protected virtual async Task BeginRun() => await Task.CompletedTask;

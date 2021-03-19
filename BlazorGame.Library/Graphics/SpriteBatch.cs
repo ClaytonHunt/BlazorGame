@@ -31,17 +31,17 @@ namespace BlazorGame.Framework.Graphics
             return Task.CompletedTask;
         }
 
-        public void Draw(Texture2D texture, Rectangle destinationRectangle, Color color)
+        public Task Draw(Texture2D texture, Rectangle destinationRectangle, Color color)
         {
             throw new NotImplementedException();
         }
 
-        public void Draw(Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color)
+        public Task Draw(Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color)
         {
             throw new NotImplementedException();
         }
 
-        public void Draw(Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, SpriteEffects effects, float layerDepth)
+        public Task Draw(Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, SpriteEffects effects, float layerDepth)
         {
             throw new NotImplementedException();
         }
@@ -51,54 +51,57 @@ namespace BlazorGame.Framework.Graphics
             return _graphicsDevice.DrawTexture(texture.Name, position.X, position.Y, color);
         }
 
-        public void Draw(Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color)
+        public Task Draw(Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color)
         {
             throw new NotImplementedException();
         }
 
-        public void Draw(Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Draw(Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
+        public Task Draw(Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
         {
             if (sourceRectangle.HasValue)
             {
-                _graphicsDevice.DrawSprite(texture.Name, position.X - origin.X, position.Y - origin.Y, sourceRectangle.Value.Top, sourceRectangle.Value.Left, sourceRectangle.Value.Bottom, sourceRectangle.Value.Right, effects == SpriteEffects.FlipHorizontally, effects == SpriteEffects.FlipVertically, color);
+                return _graphicsDevice.DrawSprite(texture.Name, position.X - origin.X, position.Y - origin.Y, sourceRectangle.Value.Top, sourceRectangle.Value.Left, sourceRectangle.Value.Bottom, sourceRectangle.Value.Right, effects == SpriteEffects.FlipHorizontally, effects == SpriteEffects.FlipVertically, color);
             }
-            else
+
+            return _graphicsDevice.DrawTexture(texture.Name, position.X - origin.X, position.Y - origin.Y, color);
+        }
+
+        public Task Draw(Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
+        {
+            if (sourceRectangle.HasValue)
             {
-                _graphicsDevice.DrawTexture(texture.Name, position.X - origin.X, position.Y - origin.Y, color);
+                return _graphicsDevice.DrawSprite(texture.Name, position.X - origin.X, position.Y - origin.Y, sourceRectangle.Value.Top, sourceRectangle.Value.Left, sourceRectangle.Value.Bottom, sourceRectangle.Value.Right, effects == SpriteEffects.FlipHorizontally, effects == SpriteEffects.FlipVertically, color);
             }
+
+            return _graphicsDevice.DrawTexture(texture.Name, position.X - origin.X, position.Y - origin.Y, color);
         }
 
-        public void DrawString(SpriteFont spriteFont, string text, Vector2 position, Color color)
+        public async Task DrawString(SpriteFont spriteFont, string text, Vector2 position, Color color)
+        {
+            await _graphicsDevice.DrawString(spriteFont, text, position, color);
+        }
+
+        public Task DrawString(SpriteFont spriteFont, string text, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
         {
             throw new NotImplementedException();
         }
 
-        public void DrawString(SpriteFont spriteFont, string text, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
+        public Task DrawString(SpriteFont spriteFont, string text, Vector2 position, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
         {
             throw new NotImplementedException();
         }
 
-        public void DrawString(SpriteFont spriteFont, string text, Vector2 position, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
+        public Task DrawString(SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color)
         {
             throw new NotImplementedException();
         }
 
-        public void DrawString(SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color)
+        public Task DrawString(SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
         {
             throw new NotImplementedException();
         }
 
-        public void DrawString(SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
-        {
-            throw new NotImplementedException();
-        }
-
-        public void DrawString(SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
+        public Task DrawString(SpriteFont spriteFont, StringBuilder text, Vector2 position, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
         {
             throw new NotImplementedException();
         }

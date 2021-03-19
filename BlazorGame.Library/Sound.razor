@@ -8,10 +8,10 @@
     [CascadingParameter]
     ContentManager Content { get; set; }
 
-    protected override Task OnAfterRenderAsync(bool firstRender)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        Content.Register<SoundEffect>(Label, Source);
+        await Content.Register<SoundEffect>(Label, Source);
 
-        return base.OnAfterRenderAsync(firstRender);
+        await base.OnAfterRenderAsync(firstRender);
     }
 }

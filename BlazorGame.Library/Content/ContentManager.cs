@@ -1,14 +1,18 @@
 ﻿using BlazorGame.Framework.Graphics;
 using Microsoft.JSInterop;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace BlazorGame.Framework.Content
 {
     public class ContentManager : IDisposable
     {
-        private readonly IJSRuntime _jsRuntime;
         private string _rootDirectory;
+        private readonly IJSRuntime _jsRuntime;
 
         public string RootDirectory => _rootDirectory;
         
@@ -16,32 +20,53 @@ namespace BlazorGame.Framework.Content
 
         public IServiceProvider ServiceProvider { get; set; }
 
-        public ContentManager(IJSRuntime jsRuntime)        
+        public IDictionary<string, object> ContentDictionary { get; set; } = new Dictionary<string, object>();
+
+        public ContentManager(IServiceProvider serviceProvider)
         {
-            _jsRuntime = jsRuntime;
+            _jsRuntime = serviceProvider.GetService<IJSRuntime>();
+            _rootDirectory = "Content";
+            ServiceProvider = serviceProvider;
         }
 
         public ContentManager(IServiceProvider serviceProvider, string rootDirectory)
         {
-            _rootDirectory = rootDirectory;
+            _jsRuntime = serviceProvider.GetService<IJSRuntime>();
+            _ = SetRootDirectory(rootDirectory);
             ServiceProvider = serviceProvider;
         }
 
-        public void Register<T>(string name, string filename) where T : IContent, new()
+        public async Task Register<T>(string name, string filename) where T : IContent, new()
         {
-            _jsRuntime.InvokeAsync<T>("BlazorGame.registerContent", name, filename);
+            await _jsRuntime.InvokeAsync<T>("BlazorGame.registerContent", name, filename);
         }
 
         public virtual async Task<T> Load<T>(string name) where T : IContent, new()
         {
+            if (ContentDictionary.ContainsKey(name))
+            {
+                return (T)ContentDictionary[name];
+            }
+
             var content = await _jsRuntime.InvokeAsync<T>("BlazorGame.loadContent", name);
+
+            Console.WriteLine(content.Name);
+
+            ContentDictionary.Add(name, content);
 
             return content;
         }
 
-        public virtual void Unload()
+        public virtual async Task Unload()
         {
-            throw new NotImplementedException();
+            while (ContentDictionary.Count > 0)
+            {
+                var item = ContentDictionary.First();
+
+                await _jsRuntime.InvokeVoidAsync("BlazorGame.unloadContent", item.Key);
+
+                ContentDictionary.Remove(item);
+            }
         }
 
         public async Task SetRootDirectory(string path)
