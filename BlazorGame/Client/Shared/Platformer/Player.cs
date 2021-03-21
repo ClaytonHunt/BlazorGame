@@ -119,14 +119,14 @@ namespace BlazorGame.Client.Shared
         /// <summary>
         /// Loads the player sprite sheet and sounds.
         /// </summary>
-        public async Task LoadContent(Vector2 position)
+        public Task LoadContent(Vector2 position)
         {
             // Load animated textures.
-            idleAnimation = new Animation(await Level.Content.Load<Texture2D>("Sprites/Player/Idle"), 0.1f, true);
-            runAnimation = new Animation(await Level.Content.Load<Texture2D>("Sprites/Player/Run"), 0.1f, true);
-            jumpAnimation = new Animation(await Level.Content.Load<Texture2D>("Sprites/Player/Jump"), 0.1f, false);
-            celebrateAnimation = new Animation(await Level.Content.Load<Texture2D>("Sprites/Player/Celebrate"), 0.1f, false);
-            dieAnimation = new Animation(await Level.Content.Load<Texture2D>("Sprites/Player/Die"), 0.1f, false);
+            idleAnimation = new Animation(Level.Content.Load<Texture2D>("Sprites/Player/Idle"), 0.1f, true);
+            runAnimation = new Animation(Level.Content.Load<Texture2D>("Sprites/Player/Run"), 0.1f, true);
+            jumpAnimation = new Animation(Level.Content.Load<Texture2D>("Sprites/Player/Jump"), 0.1f, false);
+            celebrateAnimation = new Animation(Level.Content.Load<Texture2D>("Sprites/Player/Celebrate"), 0.1f, false);
+            dieAnimation = new Animation(Level.Content.Load<Texture2D>("Sprites/Player/Die"), 0.1f, false);
 
             // Calculate bounds within texture size.            
             int width = (int)(idleAnimation.FrameWidth * 0.4);
@@ -136,11 +136,13 @@ namespace BlazorGame.Client.Shared
             localBounds = new Rectangle(left, top, width, height);
 
             // Load sounds.            
-            killedSound = await Level.Content.Load<SoundEffect>("Sounds/PlayerKilled");
-            jumpSound = await Level.Content.Load<SoundEffect>("Sounds/PlayerJump");
-            fallSound = await Level.Content.Load<SoundEffect>("Sounds/PlayerFall");
+            killedSound = Level.Content.Load<SoundEffect>("Sounds/PlayerKilled");
+            jumpSound = Level.Content.Load<SoundEffect>("Sounds/PlayerJump");
+            fallSound = Level.Content.Load<SoundEffect>("Sounds/PlayerFall");
 
             Reset(position);
+
+            return Task.CompletedTask;
         }
 
         /// <summary>

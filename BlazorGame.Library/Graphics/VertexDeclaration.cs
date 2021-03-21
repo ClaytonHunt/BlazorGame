@@ -8,7 +8,7 @@ namespace BlazorGame.Framework.Graphics
 
         public VertexDeclaration(params VertexElement[] elements)
         {
-            throw new NotImplementedException();
+            
         }
 
         public VertexDeclaration(int vertexStride, params VertexElement[] elements)

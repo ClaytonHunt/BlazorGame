@@ -26,11 +26,6 @@
 
     protected override async Task InitializeAsync()
     {
-        _graphics.PreferredBackBufferWidth = (int) ScreenManager.Instance.Dimensions.X;
-        _graphics.PreferredBackBufferHeight = (int)ScreenManager.Instance.Dimensions.Y;
-
-        _graphics.ApplyChanges();
-
         await base.InitializeAsync();
     }
 
@@ -38,27 +33,41 @@
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice, JsRuntime);
 
-        ScreenManager.Instance.GraphicsDevice = GraphicsDevice;
-        ScreenManager.Instance.SpriteBatch = _spriteBatch;
-
-        await ScreenManager.Instance.LoadContent(Content);
+        await Task.CompletedTask;
     }
 
     protected override void UnloadContent()
     {
-        ScreenManager.Instance.UnloadContent();
     }
 
     protected override async Task Update(GameTime gameTime)
     {
-        await ScreenManager.Instance.Update(gameTime);
+        await Task.CompletedTask;
     }
 
     protected override void Draw(GameTime gameTime)
     {
+        _spriteBatch.Begin();
+
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
-        ScreenManager.Instance.Draw(_spriteBatch);
-    }
+        var rand = new Random();
 
+        for (var i = 0; i < 500; ++i)
+        {
+            var rect = new Rectangle(
+                rand.Next(800),
+                rand.Next(600),
+                rand.Next(800),
+                rand.Next(600));
+
+            var color = new Color(new Vector3(rand.Next(255), rand.Next(255), rand.Next(255)));
+
+            _spriteBatch.Draw(null, rect, color);
+        }
+
+        _spriteBatch.End();
+
+        base.Draw(gameTime);
+    }
 }

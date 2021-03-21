@@ -10,7 +10,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await Content.Register<SpriteFont>(Label, Source);
+        Content.Register<SpriteFont>(Label, Source);
 
         await base.OnAfterRenderAsync(firstRender);
     }

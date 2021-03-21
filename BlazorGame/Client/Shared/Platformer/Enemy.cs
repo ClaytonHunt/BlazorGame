@@ -80,12 +80,12 @@ namespace BlazorGame.Client.Shared
         /// <summary>
         /// Loads a particular enemy sprite sheet and sounds.
         /// </summary>
-        public async Task LoadContent(string spriteSet)
+        public Task LoadContent(string spriteSet)
         {
             // Load animations.
             spriteSet = "Sprites/" + spriteSet + "/";
-            runAnimation = new Animation(await Level.Content.Load<Texture2D>(spriteSet + "Run"), 0.1f, true);
-            idleAnimation = new Animation(await Level.Content.Load<Texture2D>(spriteSet + "Idle"), 0.15f, true);
+            runAnimation = new Animation(Level.Content.Load<Texture2D>(spriteSet + "Run"), 0.1f, true);
+            idleAnimation = new Animation(Level.Content.Load<Texture2D>(spriteSet + "Idle"), 0.15f, true);
             sprite.PlayAnimation(idleAnimation);
 
             // Calculate bounds within texture size.
@@ -94,6 +94,8 @@ namespace BlazorGame.Client.Shared
             int height = (int)(idleAnimation.FrameHeight * 0.7);
             int top = idleAnimation.FrameHeight - height;
             localBounds = new Rectangle(left, top, width, height);
+
+            return Task.CompletedTask;
         }
 
 

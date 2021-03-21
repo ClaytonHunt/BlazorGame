@@ -1,6 +1,5 @@
 ﻿using BlazorGame.Framework.Graphics;
 using System;
-using System.Threading.Tasks;
 
 namespace BlazorGame.Framework
 {
@@ -42,7 +41,7 @@ namespace BlazorGame.Framework
             PreferredBackBufferHeight = DefaultBackBufferHeight;
         }
 
-        public async Task ApplyChanges()
+        public void ApplyChanges()
         {
             GraphicsDevice.Viewport = new Viewport
             {
@@ -61,7 +60,7 @@ namespace BlazorGame.Framework
                 BackBufferWidth = PreferredBackBufferWidth
             };
 
-            await GraphicsDevice.Initialize();
+            GraphicsDevice.Initialize();
         }
 
         public void Dispose()
@@ -70,49 +69,49 @@ namespace BlazorGame.Framework
             GC.SuppressFinalize(this);
         }
 
-        public Task<bool> BeginDraw()
+        public bool BeginDraw()
         {
-            return Task.FromResult(true);
+            return true;
         }
 
-        Task IGraphicsDeviceManager.CreateDevice()
+        void IGraphicsDeviceManager.CreateDevice()
         {
-            return Task.CompletedTask;
+            
         }
 
-        public Task EndDraw()
+        public void EndDraw()
         {
-            return Task.CompletedTask;
+            
         }
 
-        public Task ToggleFullScreen()
+        public void ToggleFullScreen()
         {
-            return Task.CompletedTask;
+            
         }
 
-        protected Task Finalize()
+        protected void Finalize()
         {
-            return Task.CompletedTask;
+            
         }
 
-        protected Task OnDeviceCreated(EventArgs e)
+        protected void OnDeviceCreated(EventArgs e)
         {
-            return Task.CompletedTask;
+            
         }
 
-        protected Task OnDeviceDisposing(EventArgs e)
+        protected void OnDeviceDisposing(EventArgs e)
         {
-            return Task.CompletedTask;
+            
         }
 
-        protected Task OnDeviceReset(EventArgs e)
+        protected void OnDeviceReset(EventArgs e)
         {
-            return Task.CompletedTask;
+          
         }
 
-        protected Task OnDeviceResetting(EventArgs e)
+        protected void OnDeviceResetting(EventArgs e)
         {
-            return Task.CompletedTask;
+            
         }
 
         protected virtual void Dispose(bool disposing) { }

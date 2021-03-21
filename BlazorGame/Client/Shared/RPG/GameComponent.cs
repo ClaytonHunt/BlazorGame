@@ -21,9 +21,9 @@ namespace BlazorGame.Client.Shared.RPG
             return Task.CompletedTask;
         }
 
-        public virtual Task Draw(SpriteBatch spriteBatch)
+        public virtual void Draw(SpriteBatch spriteBatch)
         {
-            return Task.CompletedTask;
+            
         }
     }
 }

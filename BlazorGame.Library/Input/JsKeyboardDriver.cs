@@ -1,20 +1,19 @@
-﻿using System.Threading.Tasks;
-using Microsoft.JSInterop;
+﻿using Microsoft.JSInterop;
 
 namespace BlazorGame.Framework.Input
 {
     public class JsKeyboardDriver : IKeyboardDriver
     {
-        private readonly IJSRuntime _jsRuntime;
+        private readonly IJSInProcessRuntime _jsRuntime;
 
         public JsKeyboardDriver(IJSRuntime jsRuntime)
         {
-            _jsRuntime = jsRuntime;
+            _jsRuntime = (IJSInProcessRuntime)jsRuntime;
         }
 
-        public async Task<KeyboardState> GetState()
+        public KeyboardState GetState()
         {
-            return await _jsRuntime.InvokeAsync<KeyboardState>("BlazorGame.getKeyState");
+            return _jsRuntime.Invoke<KeyboardState>("BlazorGame.getKeyState");
         }
     }
 }

@@ -10,7 +10,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await Content.Register<SoundEffect>(Label, Source);
+        Content.Register<SoundEffect>(Label, Source);
 
         await base.OnAfterRenderAsync(firstRender);
     }

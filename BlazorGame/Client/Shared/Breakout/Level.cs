@@ -71,25 +71,25 @@ namespace BlazorGame.Client.Shared.Breakout
                     if (brickType == '.') continue;
 
                     _brickCount++;
-                    _bricks[y, x] = await LoadBrick(brickType);
+                    _bricks[y, x] = LoadBrick(brickType);
                 }
             }
         }
 
-        private async Task<Brick> LoadBrick(char brickType)
+        private Brick LoadBrick(char brickType)
         {
             var brick = new Brick();
 
             _physicsObjects.Add(brick);
 
-            return await Task.FromResult(brick);
+            return brick;
         }
 
-        public async Task LoadContent(ContentManager content, GraphicsDeviceManager graphics)
+        public void LoadContent(ContentManager content, GraphicsDeviceManager graphics)
         {
-            _font = await content.Load<SpriteFont>("Fonts/Hud");
+            _font = content.Load<SpriteFont>("Fonts/Hud");
             var tileSafeArea = graphics.GraphicsDevice.Viewport.TitleSafeArea;
-            var brick10Texture = await content.Load<Texture2D>("Sprites/10PointBrick");
+            var brick10Texture = content.Load<Texture2D>("Sprites/10PointBrick");
 
             var screenXCenter = tileSafeArea.X + (tileSafeArea.Width / 2.0);
             var screenYCenter = tileSafeArea.Y + (tileSafeArea.Height / 2.0);

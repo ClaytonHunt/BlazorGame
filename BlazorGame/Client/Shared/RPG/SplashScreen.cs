@@ -23,9 +23,9 @@ namespace BlazorGame.Client.Shared.RPG
             await Image.Update(gameTime);
         }
 
-        public override async Task Draw(SpriteBatch spriteBatch)
+        public override void Draw(SpriteBatch spriteBatch)
         {
-            await Image.Draw(spriteBatch);
+            Image.Draw(spriteBatch);
         }
     }
 }

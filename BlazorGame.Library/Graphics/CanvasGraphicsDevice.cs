@@ -1,13 +1,15 @@
 ﻿using System;
-using System.Threading.Tasks;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.JSInterop;
 
 namespace BlazorGame.Framework.Graphics
 {
     public class CanvasGraphicsDevice : IGraphicsDevice
     {
-        private readonly IJSRuntime _jsRuntime;
-        private TimeSpan totalGameTime = new TimeSpan();
+        private TimeSpan _totalGameTime;
+        private readonly IJSInProcessRuntime _jsRuntime;
+        private readonly List<KeyValuePair<string, object[]>> _commands = new();
 
         public GraphicsAdapter Adapter { get; }
         public Color BlendFactor { get; set; }
@@ -35,7 +37,7 @@ namespace BlazorGame.Framework.Graphics
         public Viewport Viewport { get; set; }
         public string CanvasId  { get; }
 
-        public event Func<GameTime, Task> OnReady = gameTime => Task.CompletedTask;
+        public event Action<GameTime> OnReady = gameTime => { };
         public event EventHandler<EventArgs> DeviceLost = (sender, args) => { };
         public event EventHandler<EventArgs> DeviceReset = (sender, args) => { };
         public event EventHandler<EventArgs> DeviceResetting = (sender, args) => { };
@@ -45,7 +47,7 @@ namespace BlazorGame.Framework.Graphics
 
         public CanvasGraphicsDevice(IJSRuntime jsRuntime, string id, int width, int height)
         {
-            _jsRuntime = jsRuntime;
+            _jsRuntime = (IJSInProcessRuntime)jsRuntime;
 
             CanvasId = id;
 
@@ -67,181 +69,184 @@ namespace BlazorGame.Framework.Graphics
             };
         }
 
-        public async Task Initialize()
+        public void Initialize()
         {
-            await _jsRuntime.InvokeVoidAsync("BlazorGame.initialize", DotNetObjectReference.Create(this), CanvasId, PresentationParameters);
-        }
-
-        public async Task Clear(Color color)
-        {
-            await _jsRuntime.InvokeVoidAsync("BlazorGame.clear", color);
-        }
-
-        public async Task DrawTexture(string name, float x, float y, Color color)
-        {
-            await _jsRuntime.InvokeVoidAsync("BlazorGame.drawTexture", name, x, y, color);
-        }
-
-        public async Task DrawSprite(string name, float x, float y, float sourceTop, float sourceLeft, float sourceBottom, float sourceRight, bool flipHorizontal, bool flipVertical, Color color)
-        {            
-            await _jsRuntime.InvokeVoidAsync("BlazorGame.drawSprite", name, x, y, sourceTop, sourceLeft, sourceBottom, sourceRight, flipHorizontal, flipVertical, color);
-        }
-
-        public async Task DrawString(SpriteFont spriteFont, string text, Vector2 position, Color color)
-        {
-            await _jsRuntime.InvokeVoidAsync("BlazorGame.drawString", spriteFont, text, position, color);
+            _jsRuntime.Invoke<object>("BlazorGame.initialize", DotNetObjectReference.Create(this), CanvasId, PresentationParameters);
         }
 
         [JSInvokable]
-        public async Task Render(float timestamp)
+        public void Render(float timestamp)
         {
             var elapsed = new TimeSpan((long)(timestamp * 10000));
-            totalGameTime = totalGameTime.Add(elapsed);
+            _totalGameTime = _totalGameTime.Add(elapsed);
 
-            await OnReady(new GameTime { ElapsedGameTime = elapsed, TotalGameTime = totalGameTime });
+            OnReady(new GameTime { ElapsedGameTime = elapsed, TotalGameTime = _totalGameTime });
         }
 
-        public async Task Clear(ClearOptions options, Color color, float depth, int stencil)
+        public void Clear(Color color)
+        {
+            AddCommand("clear", color);
+        }
+
+        public void Clear(ClearOptions options, Color color, float depth, int stencil)
         {
             throw new NotImplementedException();
         }
 
-        public async Task Clear(ClearOptions options, Vector4 color, float depth, int stencil)
+        public void Clear(ClearOptions options, Vector4 color, float depth, int stencil)
         {
             throw new NotImplementedException();
         }
 
-        public async Task DrawIndexedPrimitives(PrimitiveType primitiveType, int baseVertex, int startIndex, int primitiveCount)
+        public void DrawIndexedPrimitives(PrimitiveType primitiveType, int baseVertex, int startIndex, int primitiveCount)
         {
             throw new NotImplementedException();
         }
 
-        public async Task DrawInstancedPrimitives(PrimitiveType primitiveType, int baseVertex, int startIndex, int primitiveCount, int instanceCount)
+        public void DrawInstancedPrimitives(PrimitiveType primitiveType, int baseVertex, int startIndex, int primitiveCount, int instanceCount)
         {
             throw new NotImplementedException();
         }
 
-        public async Task DrawInstancedPrimitives(PrimitiveType primitiveType, int baseVertex, int startIndex, int primitiveCount, int baseInstance, int instanceCount)
+        public void DrawInstancedPrimitives(PrimitiveType primitiveType, int baseVertex, int startIndex, int primitiveCount, int baseInstance, int instanceCount)
         {
             throw new NotImplementedException();
         }
 
-        public async Task DrawPrimitives(PrimitiveType primitiveType, int vertexStart, int primitiveCount)
+        public void DrawPrimitives(PrimitiveType primitiveType, int vertexStart, int primitiveCount)
         {
             throw new NotImplementedException();
         }
 
-        public async Task DrawUserIndexedPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int numVertices, short[] indexData, int indexOffset, int primitiveCount) where T : struct, IVertexType
+        public void DrawUserIndexedPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int numVertices, short[] indexData, int indexOffset, int primitiveCount) where T : struct, IVertexType
         {
             throw new NotImplementedException();
         }
 
-        public async Task DrawUserIndexedPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int numVertices, short[] indexData, int indexOffset, int primitiveCount, VertexDeclaration vertexDeclaration) where T : struct
+        public void DrawUserIndexedPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int numVertices, short[] indexData, int indexOffset, int primitiveCount, VertexDeclaration vertexDeclaration) where T : struct
         {
             throw new NotImplementedException();
         }
 
-        public async Task DrawUserIndexedPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int numVertices, int[] indexData, int indexOffset, int primitiveCount) where T : struct, IVertexType
+        public void DrawUserIndexedPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int numVertices, int[] indexData, int indexOffset, int primitiveCount) where T : struct, IVertexType
         {
             throw new NotImplementedException();
         }
 
-        public async Task DrawUserIndexedPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int numVertices, int[] indexData, int indexOffset, int primitiveCount, VertexDeclaration vertexDeclaration) where T : struct
+        public void DrawUserIndexedPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int numVertices, int[] indexData, int indexOffset, int primitiveCount, VertexDeclaration vertexDeclaration) where T : struct
         {
             throw new NotImplementedException();
         }
 
-        public async Task DrawUserPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int primitiveCount) where T : struct, IVertexType
+        public void DrawUserPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int primitiveCount) where T : struct, IVertexType
+        {
+            var data = vertexData.Cast<VertexPositionColor>().ToArray();
+
+            AddCommand("drawUserPrimitives", 
+                primitiveType, 
+                new float[]
+                {
+                    data[0].Position.X, data[0].Position.Y,
+                    data[1].Position.X, data[1].Position.Y,
+                    data[2].Position.X, data[2].Position.Y,
+                    data[3].Position.X, data[3].Position.Y,
+                    data[4].Position.X, data[4].Position.Y,
+                    data[5].Position.X, data[5].Position.Y
+                }, 
+                vertexOffset, 
+                primitiveCount);
+                //primitiveType,
+                //vertexData.Cast<VertexPositionColor>().Select(v => new { Position = new { v.Position.X, v.Position.Y }, v.Color }),
+                //vertexOffset,
+                //primitiveCount);
+        }
+
+        public void DrawUserPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int primitiveCount, VertexDeclaration vertexDeclaration) where T : struct
         {
             throw new NotImplementedException();
         }
 
-        public async Task DrawUserPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int primitiveCount, VertexDeclaration vertexDeclaration) where T : struct
+        public void Flush()
         {
             throw new NotImplementedException();
         }
 
-        public async Task Flush()
+        public void GetBackBufferData<T>(T[] data) where T : struct
         {
             throw new NotImplementedException();
         }
 
-        public async Task GetBackBufferData<T>(T[] data) where T : struct
+        public void GetBackBufferData<T>(T[] data, int startIndex, int elementCount) where T : struct
         {
             throw new NotImplementedException();
         }
 
-        public async Task GetBackBufferData<T>(T[] data, int startIndex, int elementCount) where T : struct
+        public void GetBackBufferData<T>(Rectangle? rect, T[] data, int startIndex, int elementCount) where T : struct
         {
             throw new NotImplementedException();
         }
 
-        public async Task GetBackBufferData<T>(Rectangle? rect, T[] data, int startIndex, int elementCount) where T : struct
+        public RenderTargetBinding[] GetRenderTargets()
         {
             throw new NotImplementedException();
         }
 
-        public Task<RenderTargetBinding[]> GetRenderTargets()
+        public void GetRenderTargets(RenderTargetBinding[] outTargets)
         {
             throw new NotImplementedException();
         }
 
-        public async Task GetRenderTargets(RenderTargetBinding[] outTargets)
+        public void Present()
+        {
+            _jsRuntime.Invoke<object>("BlazorGame.present", _commands);
+        }
+
+        public void Reset()
+        {
+            _commands.Clear();
+        }
+
+        public void Reset(PresentationParameters presentationParameters)
         {
             throw new NotImplementedException();
         }
 
-        public async Task Present()
+        public void SetRenderTarget(RenderTarget2D renderTarget)
+        {
+            _jsRuntime.Invoke<object>("BlazorGame.setRenderTarget", renderTarget);
+        }
+
+        public void SetRenderTarget(RenderTarget2D renderTarget, int arraySlice)
         {
             throw new NotImplementedException();
         }
 
-        public async Task Reset()
+        public void SetRenderTarget(RenderTarget3D renderTarget, int arraySlice)
         {
             throw new NotImplementedException();
         }
 
-        public async Task Reset(PresentationParameters presentationParameters)
+        public void SetRenderTarget(RenderTargetCube renderTarget, CubeMapFace cubeMapFace)
         {
             throw new NotImplementedException();
         }
 
-        public async Task SetRenderTarget(RenderTarget2D renderTarget)
-        {
-            await _jsRuntime.InvokeVoidAsync("BlazorGame.setRenderTarget", renderTarget);
-        }
-
-        public async Task SetRenderTarget(RenderTarget2D renderTarget, int arraySlice)
+        public void SetRenderTargets(params RenderTargetBinding[] renderTargets)
         {
             throw new NotImplementedException();
         }
 
-        public async Task SetRenderTarget(RenderTarget3D renderTarget, int arraySlice)
+        public void SetVertexBuffer(VertexBuffer vertexBuffer)
         {
             throw new NotImplementedException();
         }
 
-        public async Task SetRenderTarget(RenderTargetCube renderTarget, CubeMapFace cubeMapFace)
+        public void SetVertexBuffer(VertexBuffer vertexBuffer, int vertexOffset)
         {
             throw new NotImplementedException();
         }
 
-        public async Task SetRenderTargets(params RenderTargetBinding[] renderTargets)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task SetVertexBuffer(VertexBuffer vertexBuffer)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task SetVertexBuffer(VertexBuffer vertexBuffer, int vertexOffset)
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task SetVertexBuffers(params VertexBufferBinding[] vertexBuffers)
+        public void SetVertexBuffers(params VertexBufferBinding[] vertexBuffers)
         {
             throw new NotImplementedException();
         }
@@ -255,6 +260,11 @@ namespace BlazorGame.Framework.Graphics
         protected virtual void Dispose(bool isDisposing)
         {
 
+        }
+
+        private void AddCommand(string clear, params object[] parameters)
+        {
+            _commands.Add(new KeyValuePair<string, object[]>(clear, parameters));
         }
     }
 }

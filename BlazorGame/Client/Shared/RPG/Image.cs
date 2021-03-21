@@ -38,7 +38,7 @@ namespace BlazorGame.Client.Shared.RPG
 
             if (Path != string.Empty)
             {
-                Texture = await Content.Load<Texture2D>(Path);
+                Texture = Content.Load<Texture2D>(Path);
             }
 
             // Font = await Content.Load<SpriteFont>(FontName);
@@ -67,9 +67,9 @@ namespace BlazorGame.Client.Shared.RPG
 
             RenderTarget = new RenderTarget2D(ScreenManager.Instance.GraphicsDevice, (int) x, (int) y);
 
-            await ScreenManager.Instance.GraphicsDevice.SetRenderTarget(RenderTarget);
-            await ScreenManager.Instance.GraphicsDevice.Clear(Color.Transparent);
-            await ScreenManager.Instance.SpriteBatch.Begin();
+            ScreenManager.Instance.GraphicsDevice.SetRenderTarget(RenderTarget);
+            ScreenManager.Instance.GraphicsDevice.Clear(Color.Transparent);
+            ScreenManager.Instance.SpriteBatch.Begin();
 
             if (Texture != null)
             {
@@ -78,11 +78,11 @@ namespace BlazorGame.Client.Shared.RPG
 
             // await ScreenManager.Instance.SpriteBatch.DrawString(Font, Text, Vector2.Zero, Color.White);
 
-            await ScreenManager.Instance.SpriteBatch.End();
+            ScreenManager.Instance.SpriteBatch.End();
 
             Texture = RenderTarget;
 
-            await ScreenManager.Instance.GraphicsDevice.SetRenderTarget(null);
+            ScreenManager.Instance.GraphicsDevice.SetRenderTarget(null);
         }
 
         public override async Task UnloadContent()
@@ -90,9 +90,9 @@ namespace BlazorGame.Client.Shared.RPG
             await Content.Unload();
         }
 
-        public override async Task Draw(SpriteBatch spriteBatch)
+        public override void Draw(SpriteBatch spriteBatch)
         {
-            await spriteBatch.Draw(Texture, Position, SourceRect, Color.White * Alpha, 0.0f, Origin, Scale, SpriteEffects.None, 0.0f);
+            spriteBatch.Draw(Texture, Position, SourceRect, Color.White * Alpha, 0.0f, Origin, Scale, SpriteEffects.None, 0.0f);
         }
     }
 }

@@ -80,7 +80,7 @@ namespace BlazorGame.Client.Shared
         /// </summary>
         protected override async Task LoadContent()
         {
-            await Content.SetRootDirectory("Content");
+            Content.SetRootDirectory("Content");
 
             // Create a new SpriteBatch, which can be used to draw textures.
             _spriteBatch = new SpriteBatch(GraphicsDevice, JsRuntime);
@@ -89,13 +89,13 @@ namespace BlazorGame.Client.Shared
             //hudFont = Content.Load<SpriteFont>("Fonts/Hud");
 
             // Load overlay textures
-            winOverlay = await Content.Load<Texture2D>("Overlays/you_win");
-            loseOverlay = await Content.Load<Texture2D>("Overlays/you_lose");
-            diedOverlay = await Content.Load<Texture2D>("Overlays/you_died");
+            winOverlay = Content.Load<Texture2D>("Overlays/you_win");
+            loseOverlay = Content.Load<Texture2D>("Overlays/you_lose");
+            diedOverlay = Content.Load<Texture2D>("Overlays/you_died");
 
             ScalePresentationArea();
 
-            virtualGamePad = new VirtualGamePad(baseScreenSize, globalTransformation, await Content.Load<Texture2D>("Sprites/VirtualControlArrow"));
+            virtualGamePad = new VirtualGamePad(baseScreenSize, globalTransformation, Content.Load<Texture2D>("Sprites/VirtualControlArrow"));
 
             MediaPlayer.IsRepeating = true;
             // MediaPlayer.Play(await Content.Load<Song>("Sounds/Music"));
@@ -143,13 +143,13 @@ namespace BlazorGame.Client.Shared
                     virtualGamePad.NotifyPlayerIsMoving();
             }
 
-            await base.Update(gameTime);
+            base.Update(gameTime);
         }
 
         private async Task HandleInput(GameTime gameTime)
         {
             // get all of our input states
-            keyboardState = await _keyboard.GetState();
+            keyboardState = _keyboard.GetState();
             // touchState = TouchPanel.GetState();            
             // gamePadState = virtualGamePad.GetState(touchState, GamePad.GetState(PlayerIndex.One));
             // accelerometerState = Accelerometer.GetState();
@@ -196,15 +196,14 @@ namespace BlazorGame.Client.Shared
             levelIndex = (levelIndex + 1) % numberOfLevels;
 
             // Unloads the content for the current level before loading the next one.
-            if (level != null)
-                level.Dispose();
+            level?.Dispose();
 
             // Load the level.
-            string levelPath = string.Format("Content/Levels/{0}.txt", levelIndex);
-            await using (Stream fileStream = await TitleContainer.OpenStream(levelPath))
-            {
-                level = new Level(Content, fileStream, levelIndex);
-            }
+            var levelPath = $"Content/Levels/{levelIndex}.txt";
+
+            await using var fileStream = await TitleContainer.OpenStream(levelPath);
+
+            level = new Level(Content, fileStream, levelIndex);
         }
 
         private async Task ReloadCurrentLevel()
@@ -217,7 +216,7 @@ namespace BlazorGame.Client.Shared
         /// Draws the game from background to foreground.
         /// </summary>
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
-        protected override Task Draw(GameTime gameTime)
+        protected override void Draw(GameTime gameTime)
         {
             _graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
 
@@ -229,7 +228,7 @@ namespace BlazorGame.Client.Shared
 
             _spriteBatch.End();
 
-            return base.Draw(gameTime);
+            base.Draw(gameTime);
         }
 
         private void DrawHud()

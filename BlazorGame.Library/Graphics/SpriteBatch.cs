@@ -21,19 +21,27 @@ namespace BlazorGame.Framework.Graphics
             throw new NotImplementedException();
         }
 
-        public Task Begin(SpriteSortMode sortMode = SpriteSortMode.Deferred, BlendState blendState = null, SamplerState samplerState = null, DepthStencilState depthStencilState = null, RasterizerState rasterizerState = null, Effect effect = null, Matrix? transformMatrix = default(Matrix?))
+        public void Begin(SpriteSortMode sortMode = SpriteSortMode.Deferred, BlendState blendState = null, SamplerState samplerState = null, DepthStencilState depthStencilState = null, RasterizerState rasterizerState = null, Effect effect = null, Matrix? transformMatrix = default(Matrix?))
         {
-            return Task.CompletedTask;
+            _graphicsDevice.Reset();
         }
 
-        public Task End()
+        public void End()
         {
-            return Task.CompletedTask;
+            _graphicsDevice.Present();
         }
 
-        public Task Draw(Texture2D texture, Rectangle destinationRectangle, Color color)
+        public void Draw(Texture2D texture, Rectangle destinationRectangle, Color color)
         {
-            throw new NotImplementedException();
+            _graphicsDevice.DrawUserPrimitives(PrimitiveType.TriangleList, new VertexPositionColor[]
+            {
+                new(new Vector3(destinationRectangle.X, destinationRectangle.Y, 0), color),
+                new(new Vector3(destinationRectangle.Width, destinationRectangle.Y, 0), color),
+                new(new Vector3(destinationRectangle.X, destinationRectangle.Height, 0), color),
+                new(new Vector3(destinationRectangle.X, destinationRectangle.Height, 0), color),
+                new(new Vector3(destinationRectangle.Width, destinationRectangle.Y, 0), color),
+                new(new Vector3(destinationRectangle.Width, destinationRectangle.Height, 0), color)
+            }, 0, 6);
         }
 
         public Task Draw(Texture2D texture, Rectangle destinationRectangle, Rectangle? sourceRectangle, Color color)
@@ -48,7 +56,7 @@ namespace BlazorGame.Framework.Graphics
 
         public Task Draw(Texture2D texture, Vector2 position, Color color)
         {
-            return _graphicsDevice.DrawTexture(texture.Name, position.X, position.Y, color);
+            throw new NotImplementedException();
         }
 
         public Task Draw(Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color)
@@ -58,27 +66,17 @@ namespace BlazorGame.Framework.Graphics
 
         public Task Draw(Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)
         {
-            if (sourceRectangle.HasValue)
-            {
-                return _graphicsDevice.DrawSprite(texture.Name, position.X - origin.X, position.Y - origin.Y, sourceRectangle.Value.Top, sourceRectangle.Value.Left, sourceRectangle.Value.Bottom, sourceRectangle.Value.Right, effects == SpriteEffects.FlipHorizontally, effects == SpriteEffects.FlipVertically, color);
-            }
-
-            return _graphicsDevice.DrawTexture(texture.Name, position.X - origin.X, position.Y - origin.Y, color);
+            throw new NotImplementedException();
         }
 
         public Task Draw(Texture2D texture, Vector2 position, Rectangle? sourceRectangle, Color color, float rotation, Vector2 origin, float scale, SpriteEffects effects, float layerDepth)
         {
-            if (sourceRectangle.HasValue)
-            {
-                return _graphicsDevice.DrawSprite(texture.Name, position.X - origin.X, position.Y - origin.Y, sourceRectangle.Value.Top, sourceRectangle.Value.Left, sourceRectangle.Value.Bottom, sourceRectangle.Value.Right, effects == SpriteEffects.FlipHorizontally, effects == SpriteEffects.FlipVertically, color);
-            }
-
-            return _graphicsDevice.DrawTexture(texture.Name, position.X - origin.X, position.Y - origin.Y, color);
+            throw new NotImplementedException();
         }
 
         public async Task DrawString(SpriteFont spriteFont, string text, Vector2 position, Color color)
         {
-            await _graphicsDevice.DrawString(spriteFont, text, position, color);
+            throw new NotImplementedException();
         }
 
         public Task DrawString(SpriteFont spriteFont, string text, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale, SpriteEffects effects, float layerDepth)

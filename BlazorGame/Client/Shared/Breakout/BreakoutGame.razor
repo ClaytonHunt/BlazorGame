@@ -48,9 +48,9 @@
         // level = new Level(Content, fileStream, levelIndex);
     }
 
-    protected override async Task LoadContent()
+    protected override Task LoadContent()
     {
-        await Content.SetRootDirectory("Content");
+        Content.SetRootDirectory("Content");
 
         // Create a new SpriteBatch, which can be used to draw textures.
         _spriteBatch = new SpriteBatch(GraphicsDevice, JsRuntime);
@@ -62,15 +62,17 @@
 
         var ballPosition = playerBarPosition + new Vector2(0, -16);
 
-        paddle.Initialize(await Content.Load<Texture2D>("Sprites/Paddle"), playerBarPosition, _graphics);
+        paddle.Initialize(Content.Load<Texture2D>("Sprites/Paddle"), playerBarPosition, _graphics);
 
-        var ballTexture = await Content.Load<Texture2D>("Sprites/Ball");
+        var ballTexture = Content.Load<Texture2D>("Sprites/Ball");
 
-        var hudFont = await Content.Load<SpriteFont>("Fonts/Hud");
+        var hudFont = Content.Load<SpriteFont>("Fonts/Hud");
 
         _ball.Initialize(ballTexture, ballPosition, _graphics);
 
-        await _level.LoadContent(Content, _graphics);
+        _level.LoadContent(Content, _graphics);
+
+        return Task.CompletedTask;
     }
 
     protected override async Task Update(GameTime gameTime)
@@ -79,29 +81,29 @@
         // Exit();
 
         // TODO: Add your update logic here
-        var keyState = await _keyboard.GetState();
+        var keyState = _keyboard.GetState();
 
         _level.Update(gameTime, keyState);
 
         if (_level.LevelCleared)
         {
             await LoadNextLevel();
-            await _level.LoadContent(Content, _graphics);
+            _level.LoadContent(Content, _graphics);
         }
 
-        await base.Update(gameTime);
+        base.Update(gameTime);
     }
 
-    protected override async Task Draw(GameTime gameTime)
+    protected override void Draw(GameTime gameTime)
     {
-        await _graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
+        _graphics.GraphicsDevice.Clear(Color.CornflowerBlue);
 
-        await _spriteBatch.Begin();
+        _spriteBatch.Begin();
 
-        await _level.Draw(_spriteBatch);
+        _level.Draw(_spriteBatch);
 
-        await _spriteBatch.End();
+        _spriteBatch.End();
 
-        await base.Draw(gameTime);
+        base.Draw(gameTime);
     }
 }

@@ -89,10 +89,7 @@ namespace BlazorGame.Client.Shared.Platformer
             _loadingTextures = LoadTexture(levelIndex);
 
             //// Load sounds.
-            Task.Run(async () =>
-            {
-                exitReachedSound = await Content.Load<SoundEffect>("Sounds/ExitReached");
-            });
+            exitReachedSound = Content.Load<SoundEffect>("Sounds/ExitReached");
         }
 
         private async Task LoadTexture(int levelIndex)
@@ -104,7 +101,7 @@ namespace BlazorGame.Client.Shared.Platformer
             {
                 // Choose a random segment if each background layer for level variety.
                 int segmentIndex = levelIndex;
-                layers[i] = await Content.Load<Texture2D>("Backgrounds/Layer" + i + "_" + segmentIndex);
+                layers[i] = Content.Load<Texture2D>("Backgrounds/Layer" + i + "_" + segmentIndex);
             }
         }
 
@@ -236,7 +233,7 @@ namespace BlazorGame.Client.Shared.Platformer
         /// <returns>The new tile.</returns>
         private async Task<Tile> LoadTile(string name, TileCollision collision)
         {
-            return new Tile(await Content.Load<Texture2D>("Tiles/" + name), collision);
+            return new Tile(Content.Load<Texture2D>("Tiles/" + name), collision);
         }
 
 

@@ -10,7 +10,7 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await Content.Register<Texture2D>(Label, Source);
+        Content.Register<Texture2D>(Label, Source);
 
         await base.OnAfterRenderAsync(firstRender);
     }

@@ -61,11 +61,13 @@ namespace BlazorGame.Client.Shared
             _ = LoadContent();
         }
 
-        public async Task LoadContent()
+        public Task LoadContent()
         {
-            texture = await Level.Content.Load<Texture2D>("Sprites/Gem");
+            texture = Level.Content.Load<Texture2D>("Sprites/Gem");
             origin = new Vector2(texture.Width / 2.0f, texture.Height / 2.0f);
-            collectedSound = await Level.Content.Load<SoundEffect>("Sounds/GemCollected");
+            collectedSound = Level.Content.Load<SoundEffect>("Sounds/GemCollected");
+
+            return Task.CompletedTask;
         }
 
         public void Update(GameTime gameTime)

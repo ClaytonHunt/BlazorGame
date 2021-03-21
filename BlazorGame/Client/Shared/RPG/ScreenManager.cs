@@ -36,7 +36,7 @@ namespace BlazorGame.Client.Shared.RPG
             await _currentScreen.LoadContent();
         }
 
-        public async Task UnloadContent()
+        public async void UnloadContent()
         {
             await _currentScreen.UnloadContent();
         }
@@ -46,9 +46,9 @@ namespace BlazorGame.Client.Shared.RPG
             await _currentScreen.Update(gameTime);
         }
 
-        public async Task Draw(SpriteBatch spriteBatch)
+        public void Draw(SpriteBatch spriteBatch)
         {
-            await _currentScreen.Draw(spriteBatch);
+            _currentScreen.Draw(spriteBatch);
         }
     }
 }
