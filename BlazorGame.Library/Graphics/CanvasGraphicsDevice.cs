@@ -7,9 +7,15 @@ namespace BlazorGame.Framework.Graphics
 {
     public class CanvasGraphicsDevice : IGraphicsDevice
     {
+        private class GraphicsCommand
+        {
+            public string Name { get; set; }
+            public object[] Parameters { get; set; }
+        }
+
         private TimeSpan _totalGameTime;
         private readonly IJSInProcessRuntime _jsRuntime;
-        private readonly List<KeyValuePair<string, object[]>> _commands = new();
+        private readonly List<ValueTuple<string, object[]>> _commands = new();
 
         public GraphicsAdapter Adapter { get; }
         public Color BlendFactor { get; set; }
@@ -35,7 +41,7 @@ namespace BlazorGame.Framework.Graphics
         public SamplerStateCollection VertexSamplerStates { get; }
         public TextureCollection VertexTextures { get; }
         public Viewport Viewport { get; set; }
-        public string CanvasId  { get; }
+        public string CanvasId { get; }
 
         public event Action<GameTime> OnReady = gameTime => { };
         public event EventHandler<EventArgs> DeviceLost = (sender, args) => { };
@@ -85,7 +91,9 @@ namespace BlazorGame.Framework.Graphics
 
         public void Clear(Color color)
         {
-            AddCommand("clear", color);
+            // AddCommand("clear", color);
+
+            ((IJSUnmarshalledRuntime)_jsRuntime).InvokeUnmarshalled<Color, object>("BlazorGame.clear", color);
         }
 
         public void Clear(ClearOptions options, Color color, float depth, int stencil)
@@ -142,23 +150,40 @@ namespace BlazorGame.Framework.Graphics
         {
             var data = vertexData.Cast<VertexPositionColor>().ToArray();
 
-            AddCommand("drawUserPrimitives", 
-                primitiveType, 
-                new float[]
-                {
-                    data[0].Position.X, data[0].Position.Y,
-                    data[1].Position.X, data[1].Position.Y,
-                    data[2].Position.X, data[2].Position.Y,
-                    data[3].Position.X, data[3].Position.Y,
-                    data[4].Position.X, data[4].Position.Y,
-                    data[5].Position.X, data[5].Position.Y
-                }, 
-                vertexOffset, 
-                primitiveCount);
-                //primitiveType,
-                //vertexData.Cast<VertexPositionColor>().Select(v => new { Position = new { v.Position.X, v.Position.Y }, v.Color }),
-                //vertexOffset,
-                //primitiveCount);
+            ((IJSUnmarshalledRuntime)_jsRuntime).InvokeUnmarshalled<ValueTuple<PrimitiveType, int, int, float[]>, object>("BlazorGame.drawUserPrimitives",
+                new ValueTuple<PrimitiveType, int, int, float[]>(
+                    primitiveType,
+                    primitiveCount,
+                    vertexOffset,
+                    new float[]
+                    {
+                        data[0].Position.X, data[0].Position.Y,
+                        data[1].Position.X, data[1].Position.Y,
+                        data[2].Position.X, data[2].Position.Y,
+                        data[3].Position.X, data[3].Position.Y,
+                        data[4].Position.X, data[4].Position.Y,
+                        data[5].Position.X, data[5].Position.Y
+                    }));
+
+            //AddCommand("drawUserPrimitives",
+            //    primitiveType,
+            //    primitiveCount,
+            //    vertexOffset,
+            //    new float[]
+            //    {
+            //        data[0].Position.X, data[0].Position.Y,
+            //        data[1].Position.X, data[1].Position.Y,
+            //        data[2].Position.X, data[2].Position.Y,
+            //        data[3].Position.X, data[3].Position.Y,
+            //        data[4].Position.X, data[4].Position.Y,
+            //        data[5].Position.X, data[5].Position.Y
+            //    });
+
+
+            //primitiveType,
+            //vertexData.Cast<VertexPositionColor>().Select(v => new { Position = new { v.Position.X, v.Position.Y }, v.Color }),
+            //vertexOffset,
+            //primitiveCount);
         }
 
         public void DrawUserPrimitives<T>(PrimitiveType primitiveType, T[] vertexData, int vertexOffset, int primitiveCount, VertexDeclaration vertexDeclaration) where T : struct
@@ -198,7 +223,7 @@ namespace BlazorGame.Framework.Graphics
 
         public void Present()
         {
-            _jsRuntime.Invoke<object>("BlazorGame.present", _commands);
+            // ((IJSUnmarshalledRuntime)_jsRuntime).InvokeUnmarshalled<ValueTuple<string, object[]>[], object>("BlazorGame.present", _commands.ToArray());
         }
 
         public void Reset()
@@ -262,9 +287,9 @@ namespace BlazorGame.Framework.Graphics
 
         }
 
-        private void AddCommand(string clear, params object[] parameters)
+        private void AddCommand(string command, params object[] parameters)
         {
-            _commands.Add(new KeyValuePair<string, object[]>(clear, parameters));
+            _commands.Add(new ValueTuple<string, object[]>(command, parameters));
         }
     }
 }

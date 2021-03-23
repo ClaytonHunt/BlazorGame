@@ -4,10 +4,10 @@ namespace BlazorGame.Framework
 {
     public struct Color : IEquatable<Color>
     {
-        public byte A { get; set; }
         public byte R { get; set; }
         public byte G { get; set; }
         public byte B { get; set; }
+        public byte A { get; set; }
 
         public static Color Black => new(0, 0, 0, 255);
         public static Color CornflowerBlue => new(100, 149, 237, 255);
