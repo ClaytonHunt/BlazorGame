@@ -1,16 +1,10 @@
-﻿@inject ContentManager Content
-@inject Microsoft.JSInterop.IJSRuntime JsRuntime
-@inject System.Net.Http.HttpClient Http
+﻿@inject IJSRuntime JsRuntime
 
-<canvas id="@Id"></canvas>
-
-<CascadingValue Value="@GraphicsDevice">
-    <CascadingValue Value="@Content">        
-            @ChildContent        
-    </CascadingValue>
-</CascadingValue>
+<canvas id="@Id" height="@Height" width="@Width"></canvas>
 
 @code { 
+    private IJSUnmarshalledObjectReference _module;
+
     [Parameter]
     public int Height { get; set; } = 240;
 
@@ -23,17 +17,32 @@
     [Parameter]
     public RenderFragment ChildContent { get; set; }
 
-    public IGraphicsDevice GraphicsDevice { get; set; }
+    public readonly string Id = Guid.NewGuid().ToString();
 
-    protected string Id = Guid.NewGuid().ToString();
-
-    protected override void OnInitialized()
+    public IJSUnmarshalledObjectReference Initialize<T>(T game) where T: class
     {
-        GraphicsDevice = new CanvasGraphicsDevice(JsRuntime, Id, Width, Height);
-        Content.GraphicsDevice = GraphicsDevice;
-        TitleContainer.Http = Http;
-        MediaPlayer.JsRuntime = JsRuntime;
+        _module = ((IJSUnmarshalledRuntime) JsRuntime).InvokeUnmarshalled<IJSUnmarshalledObjectReference>("BlazorGame.create");
 
-        base.OnInitialized();
+        _module.Invoke<object>("registerGame", DotNetObjectReference.Create(game));
+
+        var status = _module.Invoke<ExecuteStatus>("initialize", Id);
+
+        if (!status.IsSuccess)
+        {
+            throw new Exception(status.ErrorMessage);
+        }
+
+        return _module;
+    }
+
+    public void Clear(Color color)
+    {
+        _module.InvokeUnmarshalled<Color, ExecuteStatus>("clear", color);
+    }
+
+    public class ExecuteStatus
+    {
+        public bool IsSuccess { get; set; }
+        public string ErrorMessage { get; set; }
     }
 }

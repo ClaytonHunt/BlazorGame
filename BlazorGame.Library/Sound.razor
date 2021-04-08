@@ -5,12 +5,12 @@
     [Parameter]
     public string Source { get; set; }
 
-    [CascadingParameter]
-    ContentManager Content { get; set; }
+    //[CascadingParameter]
+    //ContentManager Content { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await Content.Register<SoundEffect>(Label, Source);
+        //await Content.Register<SoundEffect>(Label, Source);
 
         await base.OnAfterRenderAsync(firstRender);
     }

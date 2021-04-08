@@ -4,6 +4,6 @@ namespace BlazorGame.Framework.Input
 {
     public interface IKeyboardDriver
     {
-        Task<KeyboardState> GetState();
+        //Task<KeyboardState> GetState();
     }
 }

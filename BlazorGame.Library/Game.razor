@@ -1,0 +1,50 @@
+﻿@using BlazorGame.Framework.Extensions
+
+<GraphicsContext @ref="Graphics" Width="@Width" Height="@Height"></GraphicsContext>
+
+<CascadingValue Value="_module">
+    @ChildContent
+</CascadingValue>
+
+@code {
+    protected IJSUnmarshalledObjectReference _module;
+    private bool IsGameOver = false;
+
+    protected GraphicsContext Graphics { get; set; }
+
+    public RenderFragment ChildContent { get; set; }
+
+    public Fps FramesPerSecond { get; set; } = new Fps();
+
+    [Parameter]
+    public int Width { get; set; } = 320;
+
+    [Parameter]
+    public int Height { get; set; } = 240;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            _module = Graphics.Initialize(this);
+        }
+    }
+
+    [JSInvokable("Loop")]
+    public bool Loop(float elapsedTime)
+    {
+        // FPS: 1000 / gameTime
+        FramesPerSecond.Update(elapsedTime);
+
+        Update(elapsedTime);
+        Draw();
+
+        return !IsGameOver;
+    }
+
+    protected virtual void Update(float elapsedTime) { }
+
+    protected virtual void Draw() { }
+}

@@ -12,9 +12,9 @@ namespace BlazorGame.Framework.Input
             _jsRuntime = jsRuntime;
         }
 
-        public async Task<KeyboardState> GetState()
-        {
-            return await _jsRuntime.InvokeAsync<KeyboardState>("BlazorGame.getKeyState");
-        }
+        //public async Task<KeyboardState> GetState()
+        //{
+        //    return await _jsRuntime.InvokeAsync<KeyboardState>("BlazorGame.getKeyState");
+        //}
     }
 }
