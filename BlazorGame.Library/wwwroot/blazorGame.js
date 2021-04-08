@@ -81,6 +81,30 @@
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     }
 
+    drawRectangle(rectangleAddress) {
+        const rect = Blazor.platform.readStructField(rectangleAddress, 0);
+        const top = Blazor.platform.readFloatField(rect, 0);
+        const left = Blazor.platform.readFloatField(rect, 4);
+        const bottom = Blazor.platform.readFloatField(rect, 8);
+        const right = Blazor.platform.readFloatField(rect, 12);
+
+        // Now create an array of positions for the square
+        const positions = [
+            left, bottom,
+            right, bottom,
+            left, top,
+            right, top
+        ];
+
+        // Now pass the list of positions into WebGL to build the
+        // shape. We do this by creating a Float32Array from the
+        // JavaScript array, then use it to fill the current buffer.
+
+        this.gl.bufferData(this.gl.ARRAY_BUFFER,
+            new Float32Array(positions),
+            this.gl.STATIC_DRAW);
+    }
+
     loadShader(type, source) {
         const shader = this.gl.createShader(type);
 
@@ -94,10 +118,7 @@
         // See if it compiled successfully
 
         if (!this.gl.getShaderParameter(shader, this.gl.COMPILE_STATUS)) {
-            throw {
-                isSuccess: false,
-                errorMessage: `An error occurred compileing the shaders: ${this.gl.getShaderInfoLog(shader)}`
-            };
+            throw this.error(`An error occurred compileing the shaders: ${this.gl.getShaderInfoLog(shader)}`);
         }
 
         return shader;
@@ -116,10 +137,7 @@
         // If creating th shader program failed, alert
 
         if (!this.gl.getProgramParameter(shaderProgram, this.gl.LINK_STATUS)) {
-            throw {
-                isSuccess: false,
-                errorMessage: `Unable to initailize the shader program: ${this.gl.getProgramInfoLog(shaderProgram)}`
-            };
+            throw this.error(`Unable to initailize the shader program: ${this.gl.getProgramInfoLog(shaderProgram)}`);
         }
 
         return shaderProgram;
@@ -148,23 +166,6 @@
         // operations to from here out.
 
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
-
-        // Now create an array of positions for the square
-
-        const positions = [
-            -1.0, 1.0,
-            1.0, 1.0,
-            -1.0, -1.0,
-            1.0, -1.0
-        ];
-
-        // Now pass the list of positions into WebGL to build the
-        // shape. We do this by creating a Float32Array from the
-        // JavaScript array, then use it to fill the current buffer.
-
-        this.gl.bufferData(this.gl.ARRAY_BUFFER,
-            new Float32Array(positions),
-            this.gl.STATIC_DRAW);
 
         return {
             position: positionBuffer
@@ -235,6 +236,13 @@
             const vertexCount = 4;
             this.gl.drawArrays(this.gl.TRIANGLE_STRIP, offset, vertexCount);
         }
+    }
+
+    error(message) {
+        return {
+            isSuccess: false,
+            errorMessage: message
+        };
     }
 }
 
