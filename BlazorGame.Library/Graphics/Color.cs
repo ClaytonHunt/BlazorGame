@@ -35,5 +35,9 @@ namespace BlazorGame.Framework.Graphics
         }
 
         public static Color CornFlowerBlue = new Color(0x6495ed);
+        public static Color White = new Color(0xffffff);
+        public static Color Red = new Color(0xff0000);
+        public static Color Green = new Color(0x00ff00);
+        public static Color Blue = new Color(0x0000ff);
     }
 }

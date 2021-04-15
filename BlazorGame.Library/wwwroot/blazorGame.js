@@ -3,21 +3,28 @@
     gl = null;
     gameTime = 0;
     boundRender = null;
+    buffers = null;
 
     vertexShader2D = `
         attribute vec4 aVertexPosition;
+        attribute vec4 aVertexColor;
 
         uniform mat4 uModelViewMatrix;
         uniform mat4 uProjectionMatrix;
 
-        void main() {
+        varying lowp vec4 vColor;
+
+        void main(void) {
             gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+            vColor = aVertexColor;
         }
     `;
 
     fragmentShader2D = `
-        void main() {
-            gl_FragColor = vec4(1.0, 1.0, 1.0, 1.0);
+        varying lowp vec4 vColor;
+    
+        void main(void) {
+            gl_FragColor = vColor;
         }
     `;
 
@@ -63,14 +70,25 @@
         window.requestAnimationFrame(this.boundRender);
     }
 
-    clear(colorAddress) {
-        const color = Blazor.platform.readStructField(colorAddress, 0);
+    readColor(colorAddress, offset) {
+        const color = Blazor.platform.readStructField(colorAddress, offset);
         const red = Blazor.platform.readFloatField(color, 0);
         const green = Blazor.platform.readFloatField(color, 4);
         const blue = Blazor.platform.readFloatField(color, 8);
         const alpha = Blazor.platform.readFloatField(color, 12);
 
-        this.gl.clearColor(red, green, blue, alpha);
+        return {
+            red: red,
+            green: green,
+            blue: blue,
+            alpha: alpha
+        };
+    }
+
+    clear(colorAddress) {
+        const color = this.readColor(colorAddress, 0);
+
+        this.gl.clearColor(color.red, color.green, color.blue, color.alpha);
         
         ////////
         this.gl.clearDepth(1.0);
@@ -81,28 +99,140 @@
         this.gl.clear(this.gl.COLOR_BUFFER_BIT | this.gl.DEPTH_BUFFER_BIT);
     }
 
-    drawRectangle(rectangleAddress) {
-        const rect = Blazor.platform.readStructField(rectangleAddress, 0);
+    drawRectangle(baseAddress) {
+        const rect = Blazor.platform.readStructField(baseAddress, 0);
         const top = Blazor.platform.readFloatField(rect, 0);
         const left = Blazor.platform.readFloatField(rect, 4);
         const bottom = Blazor.platform.readFloatField(rect, 8);
         const right = Blazor.platform.readFloatField(rect, 12);
+        const colorRect = Blazor.platform.readStructField(baseAddress, 16);
+        const colorTopLeft = this.readColor(colorRect, 0);
+        const colorTopRight = this.readColor(colorRect, 16);
+        const colorBottomLeft = this.readColor(colorRect, 32);
+        const colorBottomRight = this.readColor(colorRect, 48);
+        const rotation = Blazor.platform.readFloatField(baseAddress, 80);
 
         // Now create an array of positions for the square
         const positions = [
-            left, bottom,
             right, bottom,
-            left, top,
-            right, top
+            left, bottom,
+            right, top,
+            left, top
         ];
 
         // Now pass the list of positions into WebGL to build the
         // shape. We do this by creating a Float32Array from the
         // JavaScript array, then use it to fill the current buffer.
-
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.position);
         this.gl.bufferData(this.gl.ARRAY_BUFFER,
             new Float32Array(positions),
             this.gl.STATIC_DRAW);
+
+        const colors = [
+            colorTopRight.red, colorTopRight.green, colorTopRight.blue, colorTopRight.alpha,
+            colorTopLeft.red, colorTopLeft.green, colorTopLeft.blue, colorTopLeft.alpha,
+            colorBottomRight.red, colorBottomRight.green, colorBottomRight.blue, colorBottomRight.alpha,
+            colorBottomLeft.red, colorBottomLeft.green, colorBottomLeft.blue, colorBottomLeft.alpha
+        ];
+
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.color);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(colors), this.gl.STATIC_DRAW);
+
+        const fieldOfView = 45 * Math.PI / 180; // in radians
+        const aspect = this.gl.canvas.clientWidth / this.gl.canvas.clientHeight;
+        const zNear = .01;
+        const zFar = 100.0;
+        const projectionMatrix = mat4.create();
+
+        // note: glmatrix.js always has the first argument
+        // as the destination to receive the result.
+        mat4.perspective(projectionMatrix,
+            fieldOfView,
+            aspect,
+            zNear,
+            zFar);
+
+        // Set the drawing postion to the "identity" point, which is
+        // the center of the scene
+        const modelViewMatrix = mat4.create();
+
+        // Now move the drawing postion a bit to where we want to
+        // start drawing the square.
+        mat4.translate(modelViewMatrix, // destination matrix
+            modelViewMatrix, // matrix to translate
+            [-0.0, 0.0, -6.0]); // amount to translate
+
+        mat4.rotate(modelViewMatrix, // destination matrix
+            modelViewMatrix,        // matrix to rotate
+            rotation,               // amount to rotate in radians
+            [0, 0, 1]);             // axis to rotate around
+
+        // Tell WebGL how to pull out hte positions from the position
+        // buffer into the vertexPosition attribute.
+        {
+            const numComponents = 2;    // pull out he 2 values per iteration
+            const type = this.gl.FLOAT; // the data in the buffer is 32bit floats
+            const normalize = false;    // don't normalize
+            const stride = 0;           // how many bytes to get from one set of values to the next
+                                        // 0 = use type and numComponents above
+            const offset = 0;           // how many bytes inside the buffer to start from
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.position);
+            this.gl.vertexAttribPointer(
+                this.programInfo.attribLocations.vertexPosition,
+                numComponents,
+                type,
+                normalize,
+                stride,
+                offset);
+            this.gl.enableVertexAttribArray(
+                this.programInfo.attribLocations.vertexPosition);
+        }
+
+        // Tell WebGL how to pull out the colors from the color buffer
+        // into the vertexColor attribute.
+        {
+            const numComponents = 4;
+            const type = this.gl.FLOAT;
+            const normalize = false;
+            const stride = 0;
+            const offset = 0;
+
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.color);
+            this.gl.vertexAttribPointer(
+                this.programInfo.attribLocations.vertexColor,
+                numComponents,
+                type,
+                normalize,
+                stride,
+                offset);
+            this.gl.enableVertexAttribArray(this.programInfo.attribLocations.vertexColor);
+        }
+
+        this.gl.useProgram(this.programInfo.program);
+
+        // Set the shader uniforms
+
+        this.gl.uniformMatrix4fv(
+            this.programInfo.uniformLocations.projectionMatrix,
+            false,
+            projectionMatrix);
+        this.gl.uniformMatrix4fv(
+            this.programInfo.uniformLocations.modelViewMatrix,
+            false,
+            modelViewMatrix);
+
+        {
+            const offset = 0;
+            const vertexCount = 4;
+            this.gl.drawArrays(this.gl.TRIANGLE_STRIP, offset, vertexCount);
+        }
+    }
+
+    error(message) {
+        return {
+            isSuccess: false,
+            errorMessage: message
+        };
     }
 
     loadShader(type, source) {
@@ -149,7 +279,8 @@
         return {
             program: shaderProgram,
             attribLocations: {
-                vertexPosition: this.gl.getAttribLocation(shaderProgram, 'aVertexPosition')
+                vertexPosition: this.gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+                vertexColor: this.gl.getAttribLocation(shaderProgram, 'aVertexColor')
             },
             uniformLocations: {
                 projectionMatrix: this.gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
@@ -161,95 +292,18 @@
     initBuffers() {
         // Create a buffer for th square's positions.
         const positionBuffer = this.gl.createBuffer();
-
-        // Select het positionBuffer as the one to apply buffer
-        // operations to from here out.
-
-        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, positionBuffer);
+        const colorBuffer = this.gl.createBuffer();
 
         return {
-            position: positionBuffer
+            position: positionBuffer,
+            color: colorBuffer
         };
-    }
-
-    drawScene() {
-        const fieldOfView = 45 * Math.PI / 180; // in radians
-        const aspect = this.gl.canvas.clientWidth / this.gl.canvas.clientHeight;
-        const zNear = .01;
-        const zFar = 100.0;
-        const projectionMatrix = mat4.create();
-
-        // note: glmatrix.js always has the first argument
-        // as the destination to receive the result.
-        mat4.perspective(projectionMatrix,
-            fieldOfView,
-            aspect,
-            zNear,
-            zFar);
-
-        // Set the drawing postion to the "identity" point, which is
-        // the center of the scene
-        const modelViewMatrix = mat4.create();
-
-        // Now move the drawing postion a bit to where we want to
-        // start drawing the square.
-        mat4.translate(modelViewMatrix, // destination matrix
-            modelViewMatrix, // matrix to translate
-            [-0.0, 0.0, -6.0]); // amount to translate
-
-        // Tell WebGL how to pull out hte positions from the position
-        // buffer into the vertexPosition attribute.
-        {
-            const numComponents = 2;    // pull out he 2 values per iteration
-            const type = this.gl.FLOAT; // the data in the buffer is 32bit floats
-            const normalize = false;    // don't normalize
-            const stride = 0;           // how many bytes to get from one set of values to the next
-                                        // 0 = use type and numComponents above
-            const offset = 0;           // how many bytes inside the buffer to start from
-            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.position);
-            this.gl.vertexAttribPointer(
-                this.programInfo.attribLocations.vertexPosition,
-                numComponents,
-                type,
-                normalize,
-                stride,
-                offset);
-            this.gl.enableVertexAttribArray(
-                this.programInfo.attribLocations.vertexPosition);
-        }
-
-        this.gl.useProgram(this.programInfo.program);
-
-        // Set the shader uniforms
-
-        this.gl.uniformMatrix4fv(
-            this.programInfo.uniformLocations.projectionMatrix,
-            false,
-            projectionMatrix);
-        this.gl.uniformMatrix4fv(
-            this.programInfo.uniformLocations.modelViewMatrix,
-            false,
-            modelViewMatrix);
-
-        {
-            const offset = 0;
-            const vertexCount = 4;
-            this.gl.drawArrays(this.gl.TRIANGLE_STRIP, offset, vertexCount);
-        }
-    }
-
-    error(message) {
-        return {
-            isSuccess: false,
-            errorMessage: message
-        };
-    }
+    }  
 }
 
 window.BlazorGame = {
     create: () => new Game()
 };
-
 
 ////window.BlazorGame = window.BlazorGame || {};
 ////(function (ns) {

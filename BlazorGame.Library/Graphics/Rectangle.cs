@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace BlazorGame.Framework.Graphics
+﻿namespace BlazorGame.Framework.Graphics
 {
     public struct Rectangle
     {
@@ -19,6 +13,24 @@ namespace BlazorGame.Framework.Graphics
             Left = left;
             Bottom = bottom;
             Right = right;
+        }
+    }
+
+    public struct ColorRectangle
+    {
+        public Color TopLeft {get;set;}
+        public Color TopRight {get;set;}
+        public Color BottomLeft {get;set;}
+        public Color BottomRight {get;set;}
+
+        public ColorRectangle(Color color): this(color, color, color ,color) { }
+
+        public ColorRectangle(Color topLeft, Color topRight, Color bottomLeft, Color bottomRight)
+        {
+            TopLeft = topLeft;
+            TopRight = topRight;
+            BottomLeft = bottomLeft;
+            BottomRight = bottomRight;
         }
     }
 }
