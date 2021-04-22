@@ -29,6 +29,7 @@
         if (firstRender)
         {
             _module = Graphics.Initialize(this);
+            Load();
         }
     }
 
@@ -43,6 +44,8 @@
 
         return !IsGameOver;
     }
+
+    protected virtual void Load() { }
 
     protected virtual void Update(float elapsedTime) { }
 

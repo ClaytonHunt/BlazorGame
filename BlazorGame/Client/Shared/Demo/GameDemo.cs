@@ -2,17 +2,19 @@
 using System;
 using BlazorGame.Framework;
 using BlazorGame.Framework.Graphics;
+using Microsoft.JSInterop;
 
 namespace BlazorGame.Client.Shared.Demo
 {
     public class GameDemo : Game
     {
         private float red, green, blue;
-        private Color rectColor = Color.Red;
+        private Color rectColor = Color.White;
         private float squareRotation = 0.0f;
         private int redDirection = 1;
         private int greenDirection = 1;
         private int blueDirection = 1;
+        private Texture2D texture;
 
         public GameDemo()
         {
@@ -20,6 +22,11 @@ namespace BlazorGame.Client.Shared.Demo
             red = (float)new Random().NextDouble();
             green = (float)new Random().NextDouble();
             blue = (float)new Random().NextDouble();
+        }
+
+        protected override void Load()
+        {
+            _module.InvokeVoid("loadTexture", "cubetexture.png", "Cube");
         }
 
         protected override void Update(float elapsedTime)
@@ -55,9 +62,10 @@ namespace BlazorGame.Client.Shared.Demo
         {
             Graphics.Clear(Color.CornFlowerBlue);
 
-            _module.InvokeUnmarshalled<ValueTuple<Rectangle, ColorRectangle, float>, object>("drawRectangle", 
+            _module.InvokeUnmarshalled<ValueTuple<Rectangle, ColorRectangle, string, float>, object>("drawRectangle", 
                 new (new Rectangle(-1.0f, -1.0f, 1.0f, 1.0f),
                     new ColorRectangle(rectColor),
+                    "Cube",
                     squareRotation)
             );
         }

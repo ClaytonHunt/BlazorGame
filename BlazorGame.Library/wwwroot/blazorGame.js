@@ -4,27 +4,39 @@
     gameTime = 0;
     boundRender = null;
     buffers = null;
+    textures = new Map();
 
     vertexShader2D = `
         attribute vec4 aVertexPosition;
         attribute vec4 aVertexColor;
+        attribute vec2 aTextureCoord;
 
         uniform mat4 uModelViewMatrix;
         uniform mat4 uProjectionMatrix;
 
         varying lowp vec4 vColor;
+        varying highp vec2 vTextureCoord;
 
         void main(void) {
             gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
             vColor = aVertexColor;
+            vTextureCoord = aTextureCoord;
         }
     `;
 
     fragmentShader2D = `
+        precision highp float;
+
         varying lowp vec4 vColor;
+        varying highp vec2 vTextureCoord;
+
+        uniform sampler2D uSampler;
     
         void main(void) {
-            gl_FragColor = vColor;
+            vec4 color = texture2D(uSampler, vTextureCoord);
+            color.rgba *= vColor;
+
+            gl_FragColor = color;
         }
     `;
 
@@ -36,6 +48,9 @@
         const canvas = document.getElementById(canvasId);
 
         this.gl = canvas.getContext("webgl2");
+
+        this.gl.enable(this.gl.BLEND);
+        this.gl.blendFunc(this.gl.SRC_ALPHA, this.gl.ONE_MINUS_SRC_ALPHA);
 
         if (this.gl === null) {
             return {
@@ -49,6 +64,7 @@
         try {
             this.programInfo = this.createShader();
             this.buffers = this.initBuffers();
+            this.loadDefaultTexture();
         } catch (ex) {
             return ex;
         }
@@ -110,7 +126,8 @@
         const colorTopRight = this.readColor(colorRect, 16);
         const colorBottomLeft = this.readColor(colorRect, 32);
         const colorBottomRight = this.readColor(colorRect, 48);
-        const rotation = Blazor.platform.readFloatField(baseAddress, 80);
+        const textureName = Blazor.platform.readStringField(baseAddress, 80);
+        const rotation = Blazor.platform.readFloatField(baseAddress, 84);
 
         // Now create an array of positions for the square
         const positions = [
@@ -137,6 +154,19 @@
 
         this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.color);
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(colors), this.gl.STATIC_DRAW);
+
+        const textureCoordBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, textureCoordBuffer);
+
+        const textureCoordinates = [
+            // Front
+            1.0, 0.0,
+            0.0, 0.0,
+            1.0, 1.0,
+            0.0, 1.0
+        ];
+
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), this.gl.STATIC_DRAW);
 
         const fieldOfView = 45 * Math.PI / 180; // in radians
         const aspect = this.gl.canvas.clientWidth / this.gl.canvas.clientHeight;
@@ -208,6 +238,20 @@
             this.gl.enableVertexAttribArray(this.programInfo.attribLocations.vertexColor);
         }
 
+        // Tell WebGL how to pull out the colors from the color buffer
+        // into the vertexColor attribute.
+        {
+            const num = 2; // every coordinate composed of 2 values
+            const type = this.gl.FLOAT; // the data in the buffer is 32 bit float
+            const normalize = false; // don't normalize
+            const stride = 0; // how many bytes to get from one set to the next
+            const offset = 0; // how many bytes inside the buffer to start from
+
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, textureCoordBuffer);
+            this.gl.vertexAttribPointer(this.programInfo.attribLocations.textureCoord, num, type, normalize, stride, offset);
+            this.gl.enableVertexAttribArray(this.programInfo.attribLocations.textureCoord);
+        }
+
         this.gl.useProgram(this.programInfo.program);
 
         // Set the shader uniforms
@@ -221,6 +265,15 @@
             false,
             modelViewMatrix);
 
+        // Tell WebGL we want to affect texture unit 0
+        this.gl.activeTexture(this.gl.TEXTURE0);
+
+        // bind this texture to texture unit 0
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.get(textureName));
+
+        // Tell the shader we bound the texture to texture unit 0
+        this.gl.uniform1i(this.programInfo.uniformLocations.uSampler, 0);
+
         {
             const offset = 0;
             const vertexCount = 4;
@@ -233,6 +286,239 @@
             isSuccess: false,
             errorMessage: message
         };
+    }
+
+    drawTexturedRectangle(baseAddress) {
+        const rect = Blazor.platform.readStructField(baseAddress, 0);
+        const top = Blazor.platform.readFloatField(rect, 0);
+        const left = Blazor.platform.readFloatField(rect, 4);
+        const bottom = Blazor.platform.readFloatField(rect, 8);
+        const right = Blazor.platform.readFloatField(rect, 12);
+        const textureName = Blazor.platform.readStringField(baseAddress, 16);
+        const rotation = Blazor.platform.readFloatField(baseAddress, 24);
+
+        // Now create an array of positions for the square
+        const positions = [
+            right, bottom,
+            left, bottom,
+            right, top,
+            left, top
+        ];
+
+        // Now pass the list of positions into WebGL to build the
+        // shape. We do this by creating a Float32Array from the
+        // JavaScript array, then use it to fill the current buffer.
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.position);
+        this.gl.bufferData(this.gl.ARRAY_BUFFER,
+            new Float32Array(positions),
+            this.gl.STATIC_DRAW);
+
+        const textureCoordBuffer = this.gl.createBuffer();
+        this.gl.bindBuffer(this.gl.ARRAY_BUFFER, textureCoordBuffer);
+
+        const textureCoordinates = [
+            // Front
+            1.0, 0.0,
+            0.0, 0.0,
+            1.0, 1.0,
+            0.0, 1.0
+        ];
+
+        this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), this.gl.STATIC_DRAW);
+
+        const fieldOfView = 45 * Math.PI / 180; // in radians
+        const aspect = this.gl.canvas.clientWidth / this.gl.canvas.clientHeight;
+        const zNear = .01;
+        const zFar = 100.0;
+        const projectionMatrix = mat4.create();
+
+        // note: glmatrix.js always has the first argument
+        // as the destination to receive the result.
+        mat4.perspective(projectionMatrix,
+            fieldOfView,
+            aspect,
+            zNear,
+            zFar);
+
+        // Set the drawing postion to the "identity" point, which is
+        // the center of the scene
+        const modelViewMatrix = mat4.create();
+
+        // Now move the drawing postion a bit to where we want to
+        // start drawing the square.
+        mat4.translate(modelViewMatrix, // destination matrix
+            modelViewMatrix, // matrix to translate
+            [-0.0, 0.0, -6.0]); // amount to translate
+
+        mat4.rotate(modelViewMatrix, // destination matrix
+            modelViewMatrix,        // matrix to rotate
+            rotation,               // amount to rotate in radians
+            [0, 0, 1]);             // axis to rotate around
+
+        // Tell WebGL how to pull out hte positions from the position
+        // buffer into the vertexPosition attribute.
+        {
+            const numComponents = 2;    // pull out he 2 values per iteration
+            const type = this.gl.FLOAT; // the data in the buffer is 32bit floats
+            const normalize = false;    // don't normalize
+            const stride = 0;           // how many bytes to get from one set of values to the next
+                                        // 0 = use type and numComponents above
+            const offset = 0;           // how many bytes inside the buffer to start from
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, this.buffers.position);
+            this.gl.vertexAttribPointer(
+                this.programInfo.attribLocations.vertexPosition,
+                numComponents,
+                type,
+                normalize,
+                stride,
+                offset);
+            this.gl.enableVertexAttribArray(
+                this.programInfo.attribLocations.vertexPosition);
+        }
+
+        // Tell WebGL how to pull out the colors from the color buffer
+        // into the vertexColor attribute.
+        {
+            const num = 2; // every coordinate composed of 2 values
+            const type = this.gl.FLOAT; // the data in the buffer is 32 bit float
+            const normalize = false; // don't normalize
+            const stride = 0; // how many bytes to get from one set to the next
+            const offset = 0; // how many bytes inside the buffer to start from
+
+            this.gl.bindBuffer(this.gl.ARRAY_BUFFER, textureCoordBuffer);
+            this.gl.vertexAttribPointer(this.programInfo.attribLocations.textureCoord, num, type, normalize, stride, offset);
+            this.gl.enableVertexAttribArray(this.programInfo.attribLocations.textureCoord);
+        }
+
+        this.gl.useProgram(this.programInfo.program);
+
+        // Set the shader uniforms
+
+        this.gl.uniformMatrix4fv(
+            this.programInfo.uniformLocations.projectionMatrix,
+            false,
+            projectionMatrix);
+        this.gl.uniformMatrix4fv(
+            this.programInfo.uniformLocations.modelViewMatrix,
+            false,
+            modelViewMatrix);
+
+        // Tell WebGL we want to affect texture unit 0
+        this.gl.activeTexture(this.gl.TEXTURE0);
+
+        // bind this texture to texture unit 0
+        this.gl.bindTexture(this.gl.TEXTURE_2D, this.textures.get(textureName));
+
+        // Tell the shader we bound the texture to texture unit 0
+        this.gl.uniform1i(this.programInfo.uniformLocations.uSampler, 0);
+
+        {
+            const offset = 0;
+            const vertexCount = 4;
+            this.gl.drawArrays(this.gl.TRIANGLE_STRIP, offset, vertexCount);
+        }
+    }
+
+    error(message) {
+        return {
+            isSuccess: false,
+            errorMessage: message
+        };
+    }
+
+    loadDefaultTexture() {
+        const texture = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+
+        // Because images have to be downloaded over the internet
+        // they might take a moment until they are ready.
+        // Until then put a single pixel in the texture so we can
+        // use it immediately. When the image has finished downloading
+        // we'll update the texture with the contents of the image.
+        const level = 0;
+        const internalFormat = this.gl.RGBA;
+        const width = 1;
+        const height = 1;
+        const border = 0;
+        const srcFormat = this.gl.RGBA;
+        const srcType = this.gl.UNSIGNED_BYTE;
+        const pixel = new Uint8Array([255, 255, 255, 255]); // blank white
+
+        this.gl.texImage2D(this.gl.TEXTURE_2D,
+            level,
+            internalFormat,
+            width,
+            height,
+            border,
+            srcFormat,
+            srcType,
+            pixel);
+
+        this.textures.set("default", texture);
+    }
+
+    loadTexture(url, name) {
+        const texture = this.gl.createTexture();
+        this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+
+        // Because images have to be downloaded over the internet
+        // they might take a moment until they are ready.
+        // Until then put a single pixel in the texture so we can
+        // use it immediately. When the image has finished downloading
+        // we'll update the texture with the contents of the image.
+        const level = 0;
+        const internalFormat = this.gl.RGBA;
+        const width = 1;
+        const height = 1;
+        const border = 0;
+        const srcFormat = this.gl.RGBA;
+        const srcType = this.gl.UNSIGNED_BYTE;
+        const pixel = new Uint8Array([255, 255, 255, 255]); // blank white
+
+        this.gl.texImage2D(this.gl.TEXTURE_2D,
+            level,
+            internalFormat,
+            width,
+            height,
+            border,
+            srcFormat,
+            srcType,
+            pixel);
+
+        const image = new Image();
+        image.onload = () => {
+            this.gl.bindTexture(this.gl.TEXTURE_2D, texture);
+            this.gl.texImage2D(this.gl.TEXTURE_2D,
+                level,
+                internalFormat,
+                srcFormat,
+                srcType,
+                image);
+
+            // WebGL1 has different requirements for power of 2 images
+            // vs non power of 2 images so check if the image is a
+            // power of 2 in both dimensions.
+            if (this.isPowerOf2(image.width) && this.isPowerOf2(image.height)) {
+                // Yes, it's a power of 2. Generate mips.
+                this.gl.generateMipmap(this.gl.TEXTURE_2D);
+            } else {
+                // No, it's not a power of 2. Turn off mips and set
+                // wrapping to clamp to edge
+                this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_S, this.gl.CLAMP_TO_EDGE);
+                this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_WRAP_T, this.gl.CLAMP_TO_EDGE);
+                this.gl.texParameteri(this.gl.TEXTURE_2D, this.gl.TEXTURE_MIN_FILTER, this.gl.LINEAR);
+            }
+        };
+
+        image.src = url;
+
+        this.textures.set(name, texture);
+
+        //return {
+        //    name: name,
+        //    width: image.width,
+        //    height: image.height
+        //};
     }
 
     loadShader(type, source) {
@@ -280,12 +566,14 @@
             program: shaderProgram,
             attribLocations: {
                 vertexPosition: this.gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
-                vertexColor: this.gl.getAttribLocation(shaderProgram, 'aVertexColor')
+                vertexColor: this.gl.getAttribLocation(shaderProgram, 'aVertexColor'),
+                textureCoord: this.gl.getAttribLocation(shaderProgram, 'aTextureCoord')
             },
             uniformLocations: {
                 projectionMatrix: this.gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
-                modelViewMatrix: this.gl.getUniformLocation(shaderProgram, 'uModelViewMatrix')
-            }
+                modelViewMatrix: this.gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+                uSampler: this.gl.getUniformLocation(shaderProgram, 'uSampler')
+    }
         };
     }
 
@@ -299,6 +587,10 @@
             color: colorBuffer
         };
     }  
+
+    isPowerOf2(value) {
+        return (value & (value - 1)) === 0;
+    }
 }
 
 window.BlazorGame = {
