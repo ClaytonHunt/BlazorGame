@@ -31,31 +31,31 @@ namespace BlazorGame.Client.Shared.Demo
 
         protected override void Update(float elapsedTime)
         {
-            // squareRotation += 0.5f / elapsedTime;
+            squareRotation += 0.5f / elapsedTime;
 
-            //red += redDirection * 0.025f / elapsedTime;
-            //green += greenDirection * 0.035f / elapsedTime;
-            //blue += blueDirection * 0.015f / elapsedTime;
+            red += redDirection * 0.025f / elapsedTime;
+            green += greenDirection * 0.035f / elapsedTime;
+            blue += blueDirection * 0.015f / elapsedTime;
 
-            //if (red > 1.0f || red < 0.0f)
-            //{
-            //    red -= redDirection * 0.025f / elapsedTime;
-            //    redDirection *= -1;
-            //}
+            if (red > 1.0f || red < 0.0f)
+            {
+                red -= redDirection * 0.025f / elapsedTime;
+                redDirection *= -1;
+            }
 
-            //if (green > 1.0f || green < 0.0f)
-            //{
-            //    green -= greenDirection * 0.035f / elapsedTime;
-            //    greenDirection *= -1;
-            //}
+            if (green > 1.0f || green < 0.0f)
+            {
+                green -= greenDirection * 0.035f / elapsedTime;
+                greenDirection *= -1;
+            }
 
-            //if (blue > 1.0f || blue < 0.0f)
-            //{
-            //    blue -= blueDirection * 0.015f / elapsedTime;
-            //    blueDirection *= -1;
-            //}
+            if (blue > 1.0f || blue < 0.0f)
+            {
+                blue -= blueDirection * 0.015f / elapsedTime;
+                blueDirection *= -1;
+            }
 
-            //rectColor = new Color(red, green, blue);
+            rectColor = new Color(red, green, blue);
         }
 
         protected override void Draw()
@@ -63,7 +63,7 @@ namespace BlazorGame.Client.Shared.Demo
             Graphics.Clear(Color.CornFlowerBlue);
 
             _module.InvokeUnmarshalled<ValueTuple<Rectangle, ColorRectangle, string, float>, object>("drawRectangle", 
-                new (new Rectangle(10, 10, 50, 100),
+                new (new Rectangle(-1f, -1f, 1f, 1f),
                     new ColorRectangle(rectColor),
                     "Cube",
                     squareRotation)
