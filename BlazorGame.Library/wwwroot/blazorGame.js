@@ -8,18 +8,32 @@
     camera = null;
 
     vertexShader2D = `
-        attribute vec4 aVertexPosition;
+        attribute vec2 aVertexPosition;
         attribute vec4 aVertexColor;
         attribute vec2 aTextureCoord;
 
         uniform mat4 uModelViewMatrix;
         uniform mat4 uProjectionMatrix;
+        uniform vec2 uResolution;
 
         varying lowp vec4 vColor;
         varying highp vec2 vTextureCoord;
 
         void main(void) {
-            gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
+            // convert the position from pixels to 0.0 to 1.0
+            vec2 zeroToOne = aVertexPosition / uResolution;
+
+            // convert fomr 0->1 to 0->2
+            vec2 zeroToTwo = zeroToOne * 2.0;
+
+            // convert from 0->2 to -1->1 (clip space)
+            vec2 clipSpace = zeroToTwo - 1.0;
+
+            vec4 position = vec4(clipSpace * vec2(1, -1), 0 ,1);
+
+            // gl_Position = uProjectionMatrix * uModelViewMatrix * position;
+            gl_Position = position;
+
             vColor = aVertexColor;
             vTextureCoord = aTextureCoord;
         }
@@ -119,10 +133,10 @@
 
     drawRectangle(baseAddress) {
         const rect = Blazor.platform.readStructField(baseAddress, 0);
-        const top = Blazor.platform.readFloatField(rect, 0);
-        const left = Blazor.platform.readFloatField(rect, 4);
-        const bottom = Blazor.platform.readFloatField(rect, 8);
-        const right = Blazor.platform.readFloatField(rect, 12);
+        const yPos = Blazor.platform.readFloatField(rect, 0);
+        const xPos = Blazor.platform.readFloatField(rect, 4);
+        const height = Blazor.platform.readFloatField(rect, 8);
+        const width = Blazor.platform.readFloatField(rect, 12);
         const colorRect = Blazor.platform.readStructField(baseAddress, 16);
         const colorTopLeft = this.readColor(colorRect, 0);
         const colorTopRight = this.readColor(colorRect, 16);
@@ -133,10 +147,10 @@
 
         // Now create an array of positions for the square
         const positions = [
-            right, bottom,
-            left, bottom,
-            right, top,
-            left, top
+            xPos + width, yPos + height,
+            xPos, yPos + height,
+            xPos + width, yPos,
+            xPos, yPos
         ];
 
         // Now pass the list of positions into WebGL to build the
@@ -161,10 +175,10 @@
 
         const textureCoordinates = [
             // Front
+            1.0, 1.0,
+            0.0, 1.0,
             1.0, 0.0,
             0.0, 0.0,
-            1.0, 1.0,
-            0.0, 1.0
         ];
 
         this.gl.bufferData(this.gl.ARRAY_BUFFER, new Float32Array(textureCoordinates), this.gl.STATIC_DRAW);
@@ -177,7 +191,7 @@
         // start drawing the square.
         mat4.translate(modelViewMatrix, // destination matrix
             modelViewMatrix, // matrix to translate
-            [-0.0, 0.0, -6.0]); // amount to translate
+            [-0.0, 0.0, -2.0]); // amount to translate
 
         mat4.rotate(modelViewMatrix, // destination matrix
             modelViewMatrix,        // matrix to rotate
@@ -238,8 +252,6 @@
             this.gl.vertexAttribPointer(this.programInfo.attribLocations.textureCoord, num, type, normalize, stride, offset);
             this.gl.enableVertexAttribArray(this.programInfo.attribLocations.textureCoord);
         }
-
-        this.gl.useProgram(this.programInfo.program);
 
         // Set the shader uniforms
         this.gl.uniformMatrix4fv(
@@ -410,7 +422,7 @@
     createShader() {
         const shaderProgram = this.initShaderProgram(this.vertexShader2D, this.fragmentShader2D);
 
-        return {
+        var programInfo = {
             program: shaderProgram,
             attribLocations: {
                 vertexPosition: this.gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
@@ -420,9 +432,16 @@
             uniformLocations: {
                 projectionMatrix: this.gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
                 modelViewMatrix: this.gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+                resolution: this.gl.getUniformLocation(shaderProgram, 'uResolution'),
                 uSampler: this.gl.getUniformLocation(shaderProgram, 'uSampler')
-    }
+            }
         };
+
+        this.gl.useProgram(programInfo.program);
+
+        this.gl.uniform2f(programInfo.uniformLocations.resolution, this.gl.canvas.width, this.gl.canvas.height);
+
+        return programInfo;
     }
 
     initBuffers() {
